@@ -30,7 +30,7 @@ def _(js, mo):
     return (signalk_url,)
 
 
-# ── Provider dropdown — populated from the history API ───────────────────────
+# ── Provider dropdown ─────────────────────────────────────────────────────────
 @app.cell(hide_code=True)
 async def _(json, mo, pyfetch, signalk_url):
     try:
@@ -51,14 +51,15 @@ async def _(json, mo, pyfetch, signalk_url):
     return (provider_input,)
 
 
-# ── Path multiselect — re-fetched when provider changes ──────────────────────
+# ── Path multiselect — /v2/api/history/paths ──────────────────────────────────
 @app.cell(hide_code=True)
-async def _(json, mo, pyfetch, provider_input, signalk_url):
+async def _(json, mo, pyfetch, provider_input, signalk_url, urlencode):
     _available_paths = []
     if provider_input.value:
         try:
+            _qs = urlencode({"provider": provider_input.value, "duration": "P1D"})
             _resp = await pyfetch(
-                f"{signalk_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
+                f"{signalk_url}/signalk/v2/api/history/paths?{_qs}",
                 credentials="include",
             )
             _available_paths = sorted(json.loads(await _resp.string()))
@@ -80,7 +81,7 @@ async def _(json, mo, pyfetch, provider_input, signalk_url):
     else:
         paths_input = mo.ui.text_area(
             value="\n".join(_defaults),
-            label="Paths (one per line)",
+            label="Paths (one per line — no data found for last 24 h)",
             rows=5,
         )
     return (paths_input,)
@@ -111,7 +112,7 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     return
 
 
-# ── Data fetch ────────────────────────────────────────────────────────────────
+# ── Data fetch — /v2/api/history/values ───────────────────────────────────────
 @app.cell
 async def _(
     fetch_btn,
@@ -126,7 +127,12 @@ async def _(
     to_date,
     urlencode,
 ):
-    _empty = pl.DataFrame({"timestamp": pl.Series([], dtype=pl.Datetime), "value": pl.Series([], dtype=pl.Float64), "source": pl.Series([], dtype=pl.Utf8), "context": pl.Series([], dtype=pl.Utf8)})
+    _empty = pl.DataFrame({
+        "timestamp": pl.Series([], dtype=pl.Datetime),
+        "value": pl.Series([], dtype=pl.Float64),
+        "method": pl.Series([], dtype=pl.Utf8),
+        "context": pl.Series([], dtype=pl.Utf8),
+    })
     signalk_data = _empty
     tables = {}
 
@@ -140,19 +146,18 @@ async def _(
         if isinstance(paths_input.value, list)
         else [p.strip() for p in paths_input.value.splitlines() if p.strip()]
     )
-    _provider = provider_input.value or ""
 
-    _params = [("path", p) for p in _paths]
-    _params += [
-        ("from", f"{from_date.value.isoformat()}T00:00:00Z"),
-        ("to", f"{to_date.value.isoformat()}T23:59:59Z"),
-    ]
-    if _provider:
-        _params.append(("provider", _provider))
+    _params = {
+        "paths": ",".join(_paths),
+        "from": f"{from_date.value.isoformat()}T00:00:00Z",
+        "to": f"{to_date.value.isoformat()}T23:59:59Z",
+    }
+    if provider_input.value:
+        _params["provider"] = provider_input.value
 
     _raw = {}
     try:
-        _url = f"{signalk_url}/signalk/v1/history/values?{urlencode(_params)}"
+        _url = f"{signalk_url}/signalk/v2/api/history/values?{urlencode(_params)}"
         _resp = await pyfetch(_url, credentials="include")
         _raw = json.loads(await _resp.string())
     except Exception as _e:
@@ -166,13 +171,13 @@ async def _(
     for _i, _meta in enumerate(_path_meta):
         _path = _meta.get("path", f"path_{_i}")
         _tname = _path.replace(".", "_")
-        _source = ", ".join(str(s) for s in _meta.get("sources", []))
+        _method = _meta.get("method", "")
 
         _path_rows = [
             {
                 "timestamp": _row[0],
                 "value": float(_row[_i + 1]) if _row[_i + 1] is not None else None,
-                "source": _source,
+                "method": _method,
                 "context": _context,
             }
             for _row in _data_rows
@@ -180,7 +185,7 @@ async def _(
         ]
         _long_rows.extend(
             {"timestamp": r["timestamp"], "path": _path, "value": r["value"],
-             "source": r["source"], "context": r["context"]}
+             "method": r["method"], "context": r["context"]}
             for r in _path_rows
         )
 
