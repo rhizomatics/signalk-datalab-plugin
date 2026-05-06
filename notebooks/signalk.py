@@ -12,81 +12,134 @@ def _():
     import os
     from datetime import date, timedelta
 
-    import niquests as _http
-    return mo, pl, duckdb, os, date, timedelta, _http
+    import niquests as http_client
+    return mo, pl, duckdb, os, date, timedelta, http_client
 
 
 @app.cell(hide_code=True)
 def _(mo, os):
     _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
-    _provider = os.environ.get("SIGNALK_PROVIDER", "")
     mo.md(
         f"""
         # SignalK Data Notebooks
-        **Server** `{_url}` &nbsp;|&nbsp; **Default provider** `{_provider or "(server default)"}`
+        **Server** `{_url}`
 
-        Load data from the [History API](./signalk/v1/history/values) into reactive SQL tables.
-        Configure paths and time range below, then press **Fetch data**.
+        Select a provider and paths, set a date range, then press **Fetch data**.
         """
     )
     return
 
 
-@app.cell
+# ── Provider dropdown — populated from the history API ───────────────────────
+@app.cell(hide_code=True)
+def _(http_client, mo, os):
+    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
+    _token = os.environ.get("SIGNALK_TOKEN", "")
+    _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
+
+    try:
+        _r = http_client.get(
+            f"{_url}/signalk/v2/api/history/_providers",
+            headers=_headers,
+            timeout=10,
+        )
+        _r.raise_for_status()
+        _provider_options = _r.json()
+    except Exception:
+        _provider_options = []
+
+    _default = os.environ.get("SIGNALK_PROVIDER", "")
+    provider_input = mo.ui.dropdown(
+        options=_provider_options,
+        value=_default if _default in _provider_options else (_provider_options[0] if _provider_options else None),
+        label="Provider",
+    )
+    return provider_input,
+
+
+# ── Path multiselect — re-fetched when provider changes ──────────────────────
+@app.cell(hide_code=True)
+def _(http_client, mo, os, provider_input):
+    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
+    _token = os.environ.get("SIGNALK_TOKEN", "")
+    _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
+
+    _available_paths = []
+    if provider_input.value:
+        try:
+            _r = http_client.get(
+                f"{_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
+                headers=_headers,
+                timeout=10,
+            )
+            _r.raise_for_status()
+            _available_paths = sorted(_r.json())
+        except Exception:
+            pass
+
+    _defaults = [
+        "navigation.speedOverGround",
+        "navigation.courseOverGroundTrue",
+        "navigation.position",
+    ]
+
+    if _available_paths:
+        paths_input = mo.ui.multiselect(
+            options=_available_paths,
+            value=[p for p in _defaults if p in _available_paths],
+            label="Paths",
+        )
+    else:
+        paths_input = mo.ui.text_area(
+            value="\n".join(_defaults),
+            label="Paths (one per line)",
+            rows=5,
+        )
+    return paths_input,
+
+
+# ── Date range + fetch button — independent of provider/paths ─────────────────
+@app.cell(hide_code=True)
 def _(mo, date, timedelta):
     _today = date.today()
     _yesterday = _today - timedelta(days=1)
-
     from_date = mo.ui.date(value=_yesterday, label="From")
     to_date = mo.ui.date(value=_today, label="To")
-
-    paths_input = mo.ui.text_area(
-        value=(
-            "navigation.speedOverGround\n"
-            "navigation.courseOverGroundTrue\n"
-            "navigation.position"
-        ),
-        label="Paths (one per line)",
-        rows=5,
-    )
-
-    provider_input = mo.ui.text(
-        value=__import__("os").environ.get("SIGNALK_PROVIDER", ""),
-        placeholder="leave empty for server default",
-        label="Provider override",
-    )
-
     fetch_btn = mo.ui.run_button(label="Fetch data")
+    return from_date, to_date, fetch_btn
 
+
+# ── Layout — displays all controls together ───────────────────────────────────
+@app.cell(hide_code=True)
+def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     mo.vstack(
         [
-            mo.hstack([from_date, to_date, provider_input], gap="1.5rem", align="end"),
+            mo.hstack([provider_input, from_date, to_date], gap="1.5rem", align="end"),
             paths_input,
             fetch_btn,
         ],
         gap="0.75rem",
     )
-    return fetch_btn, from_date, paths_input, provider_input, to_date
+    return
 
 
+# ── Data fetch ────────────────────────────────────────────────────────────────
 @app.cell
 def _(
-    mo,
-    pl,
     duckdb,
-    os,
-    date,
-    _http,
-    from_date,
-    to_date,
-    paths_input,
-    provider_input,
     fetch_btn,
+    from_date,
+    http_client,
+    mo,
+    os,
+    paths_input,
+    pl,
+    provider_input,
+    to_date,
 ):
-    # Initialise empty tables so downstream SQL cells don't fail before first fetch
     _empty_schema = {"timestamp": pl.Utf8, "path": pl.Utf8, "value": pl.Float64, "source": pl.Utf8, "context": pl.Utf8}
     signalk_data = pl.DataFrame(_empty_schema)
-    tables: dict[str, pl.DataFrame] = {}
+    tables = {}
 
     mo.stop(
         not fetch_btn.value,
@@ -97,10 +150,13 @@ def _(
     _token = os.environ.get("SIGNALK_TOKEN", "")
     _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
 
-    _paths = [p.strip() for p in paths_input.value.splitlines() if p.strip()]
-    _provider = provider_input.value.strip() or os.environ.get("SIGNALK_PROVIDER", "")
+    _paths = (
+        paths_input.value
+        if isinstance(paths_input.value, list)
+        else [p.strip() for p in paths_input.value.splitlines() if p.strip()]
+    )
+    _provider = provider_input.value or ""
 
-    # Build params — multiple 'path' values are sent as repeated query params
     _params = [("path", p) for p in _paths]
     _params += [
         ("from", f"{from_date.value.isoformat()}T00:00:00Z"),
@@ -109,8 +165,9 @@ def _(
     if _provider:
         _params.append(("provider", _provider))
 
+    _raw = {}
     try:
-        _r = _http.get(
+        _r = http_client.get(
             f"{_url}/signalk/v1/history/values",
             params=_params,
             headers=_headers,
@@ -121,15 +178,9 @@ def _(
     except Exception as _e:
         mo.stop(True, mo.callout(mo.md(f"**Fetch failed**: {_e}"), kind="danger"))
 
-    # Response format (signalk-parquet / compliant History API):
-    # {
-    #   "context": "vessels.urn:mrn:imo:mmsi:...",
-    #   "values": [ {"path": "...", "sources": ["..."], ...}, ... ],
-    #   "data":   [ [timestamp_iso, val0, val1, ...], ... ]
-    # }
     _context = _raw.get("context", "")
-    _path_meta = _raw.get("values", [])   # one entry per requested path
-    _data_rows = _raw.get("data", [])     # columnar rows: [ts, v0, v1, ...]
+    _path_meta = _raw.get("values", [])
+    _data_rows = _raw.get("data", [])
 
     _long_rows: list[dict] = []
 
@@ -185,10 +236,7 @@ def _(
         ),
         mo.md(
             "**Available tables** (query with `mo.sql` below):\n"
-            + "\n".join(
-                f"- `{t}` — {tables[t].height:,} rows"
-                for t in tables
-            )
+            + "\n".join(f"- `{t}` — {tables[t].height:,} rows" for t in tables)
         ),
     ])
     return signalk_data, tables

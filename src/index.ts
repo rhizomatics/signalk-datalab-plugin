@@ -142,7 +142,10 @@ module.exports = function (app: any) {
       return;
     }
 
-    const serverPort: number = app.getPort?.() ?? 3000;
+    const serverPort: number =
+      app.getPort?.() ??
+      (app.config?.settings?.port as number | undefined) ??
+      3000;
     const signalkUrl = options.signalkUrl?.trim() || `http://localhost:${serverPort}`;
     const venvDir = path.join(app.getDataDirPath(), '.venv');
 
