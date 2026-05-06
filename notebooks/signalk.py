@@ -8,11 +8,12 @@ app = marimo.App(width="full", app_title="SignalK Data Notebooks")
 def _():
     import marimo as mo
     import polars as pl
+    import json
     from datetime import date, timedelta
     from pyodide.http import pyfetch
     from urllib.parse import urlencode
     import js
-    return date, js, mo, pl, pyfetch, timedelta, urlencode
+    return date, js, json, mo, pl, pyfetch, timedelta, urlencode
 
 
 @app.cell(hide_code=True)
@@ -29,6 +30,7 @@ def _(js, mo):
     return (signalk_url,)
 
 
+# ── Auth token — displayed in its own cell so it's always visible ─────────────
 @app.cell(hide_code=True)
 def _(mo):
     token_input = mo.ui.text(value="", label="Auth token (optional)", kind="password")
@@ -37,14 +39,14 @@ def _(mo):
 
 # ── Provider dropdown — populated from the history API ───────────────────────
 @app.cell(hide_code=True)
-async def _(mo, pyfetch, signalk_url, token_input):
+async def _(json, mo, pyfetch, signalk_url, token_input):
     _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
     try:
         _resp = await pyfetch(
             f"{signalk_url}/signalk/v2/api/history/_providers",
             headers=_headers,
         )
-        _provider_options = await _resp.json()
+        _provider_options = json.loads(await _resp.string())
     except Exception:
         _provider_options = []
 
@@ -58,7 +60,7 @@ async def _(mo, pyfetch, signalk_url, token_input):
 
 # ── Path multiselect — re-fetched when provider changes ──────────────────────
 @app.cell(hide_code=True)
-async def _(mo, pyfetch, provider_input, signalk_url, token_input):
+async def _(json, mo, pyfetch, provider_input, signalk_url, token_input):
     _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
 
     _available_paths = []
@@ -68,7 +70,7 @@ async def _(mo, pyfetch, provider_input, signalk_url, token_input):
                 f"{signalk_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
                 headers=_headers,
             )
-            _available_paths = sorted(await _resp.json())
+            _available_paths = sorted(json.loads(await _resp.string()))
         except Exception:
             pass
 
@@ -104,12 +106,12 @@ def _(date, mo, timedelta):
     return fetch_btn, from_date, to_date
 
 
-# ── Layout — all controls together ───────────────────────────────────────────
+# ── Layout — provider, dates, paths, fetch (token shown above independently) ──
 @app.cell(hide_code=True)
-def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date, token_input):
+def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     mo.vstack(
         [
-            mo.hstack([provider_input, token_input, from_date, to_date], gap="1.5rem", align="end"),
+            mo.hstack([provider_input, from_date, to_date], gap="1.5rem", align="end"),
             paths_input,
             fetch_btn,
         ],
@@ -123,6 +125,7 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date, token_inpu
 async def _(
     fetch_btn,
     from_date,
+    json,
     mo,
     paths_input,
     pyfetch,
@@ -159,11 +162,11 @@ async def _(
     if _provider:
         _params.append(("provider", _provider))
 
-    _raw: dict = {}
+    _raw = {}
     try:
         _url = f"{signalk_url}/signalk/v1/history/values?{urlencode(_params)}"
         _resp = await pyfetch(_url, headers=_headers)
-        _raw = await _resp.json()
+        _raw = json.loads(await _resp.string())
     except Exception as _e:
         mo.stop(True, mo.callout(mo.md(f"**Fetch failed**: {_e}"), kind="danger"))
 
