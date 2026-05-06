@@ -30,21 +30,13 @@ def _(js, mo):
     return (signalk_url,)
 
 
-# ── Auth token — displayed in its own cell so it's always visible ─────────────
-@app.cell(hide_code=True)
-def _(mo):
-    token_input = mo.ui.text(value="", label="Auth token (optional)", kind="password")
-    return (token_input,)
-
-
 # ── Provider dropdown — populated from the history API ───────────────────────
 @app.cell(hide_code=True)
-async def _(json, mo, pyfetch, signalk_url, token_input):
-    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
+async def _(json, mo, pyfetch, signalk_url):
     try:
         _resp = await pyfetch(
             f"{signalk_url}/signalk/v2/api/history/_providers",
-            headers=_headers,
+            credentials="include",
         )
         _provider_options = json.loads(await _resp.string())
     except Exception:
@@ -60,15 +52,13 @@ async def _(json, mo, pyfetch, signalk_url, token_input):
 
 # ── Path multiselect — re-fetched when provider changes ──────────────────────
 @app.cell(hide_code=True)
-async def _(json, mo, pyfetch, provider_input, signalk_url, token_input):
-    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
-
+async def _(json, mo, pyfetch, provider_input, signalk_url):
     _available_paths = []
     if provider_input.value:
         try:
             _resp = await pyfetch(
                 f"{signalk_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
-                headers=_headers,
+                credentials="include",
             )
             _available_paths = sorted(json.loads(await _resp.string()))
         except Exception:
@@ -106,7 +96,7 @@ def _(date, mo, timedelta):
     return fetch_btn, from_date, to_date
 
 
-# ── Layout — provider, dates, paths, fetch (token shown above independently) ──
+# ── Layout ────────────────────────────────────────────────────────────────────
 @app.cell(hide_code=True)
 def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     mo.vstack(
@@ -120,7 +110,7 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     return
 
 
-# ── Data fetch — returns one DataFrame per path + a combined long-form ────────
+# ── Data fetch ────────────────────────────────────────────────────────────────
 @app.cell
 async def _(
     fetch_btn,
@@ -133,7 +123,6 @@ async def _(
     provider_input,
     signalk_url,
     to_date,
-    token_input,
     urlencode,
 ):
     _empty = pl.DataFrame({"timestamp": pl.Series([], dtype=pl.Datetime), "value": pl.Series([], dtype=pl.Float64), "source": pl.Series([], dtype=pl.Utf8), "context": pl.Series([], dtype=pl.Utf8)})
@@ -144,8 +133,6 @@ async def _(
         not fetch_btn.value,
         mo.callout(mo.md("Press **Fetch data** above to load."), kind="info"),
     )
-
-    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
 
     _paths = (
         paths_input.value
@@ -165,7 +152,7 @@ async def _(
     _raw = {}
     try:
         _url = f"{signalk_url}/signalk/v1/history/values?{urlencode(_params)}"
-        _resp = await pyfetch(_url, headers=_headers)
+        _resp = await pyfetch(_url, credentials="include")
         _raw = json.loads(await _resp.string())
     except Exception as _e:
         mo.stop(True, mo.callout(mo.md(f"**Fetch failed**: {_e}"), kind="danger"))
