@@ -1,7 +1,7 @@
 {
   "name": "signalk-data-notebooks",
   "version": "0.1.0",
-  "description": "Marimo reactive notebooks for SignalK data — History API, parquet, and custom SQL",
+  "description": "Marimo notebooks for SignalK data via History API",
   "main": "dist/index.js",
   "keywords": [
     "signalk-node-server-plugin",

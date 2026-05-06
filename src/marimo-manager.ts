@@ -1,4 +1,4 @@
-import { spawn, ChildProcess, execSync, spawnSync } from 'child_process';
+import { spawn, ChildProcess, spawnSync, execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as http from 'http';
@@ -99,42 +99,20 @@ export class MarimoManager {
   }
 
   /**
-   * Poll marimo's HTTP port until it responds or the timeout elapses.
-   * Resolves when the server is accepting connections.
+   * Spawn marimo and wait until its HTTP server is accepting connections.
+   *
+   * Rejects immediately if the process exits before becoming ready (with the
+   * last lines of its output so the caller can surface a useful error).
+   * After becoming ready, calls onUnexpectedExit if the process later dies.
    */
-  static waitUntilReady(port: number, timeoutMs = 60_000): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const deadline = Date.now() + timeoutMs;
-
-      function attempt(): void {
-        const req = http.get(`http://127.0.0.1:${port}/`, (res) => {
-          res.resume();
-          resolve();
-        });
-        req.setTimeout(1000, () => req.destroy());
-        req.on('error', () => {
-          if (Date.now() >= deadline) {
-            reject(new Error(`Marimo did not start on port ${port} within ${timeoutMs / 1000}s`));
-          } else {
-            setTimeout(attempt, 1000);
-          }
-        });
-      }
-
-      attempt();
-    });
-  }
-
   async start(
     config: MarimoConfig,
     log: (msg: string) => void,
-    onExit?: (code: number | null) => void,
+    onUnexpectedExit?: (code: number | null) => void,
   ): Promise<void> {
-    const marimo = MarimoManager.findMarimo(config.venvDir);
-    const [bin, ...binArgs] = marimo.split(' ');
+    const marimoBin = MarimoManager.findMarimo(config.venvDir);
 
     const args = [
-      ...binArgs,
       config.mode,
       config.notebookPath,
       '--host', '0.0.0.0',
@@ -150,25 +128,68 @@ export class MarimoManager {
       MARIMO_SKIP_UPDATE_CHECK: '1',
     };
 
-    log(`Starting marimo ${config.mode}: ${bin} ${args.join(' ')}`);
+    log(`Starting marimo ${config.mode}: ${marimoBin} ${args.join(' ')}`);
 
-    this.process = spawn(bin, args, { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    return new Promise((resolve, reject) => {
+      const proc = spawn(marimoBin, args, { env, stdio: ['ignore', 'pipe', 'pipe'] });
 
-    this.process.stdout?.on('data', (d: Buffer) => {
-      for (const line of d.toString().trimEnd().split('\n')) {
-        if (line.trim()) log(line);
-      }
-    });
-    this.process.stderr?.on('data', (d: Buffer) => {
-      for (const line of d.toString().trimEnd().split('\n')) {
-        if (line.trim()) log(line);
-      }
-    });
+      // Rolling tail of recent output — included in error messages
+      const tail: string[] = [];
+      const collectAndLog = (d: Buffer) => {
+        for (const line of d.toString().trimEnd().split('\n')) {
+          if (!line.trim()) continue;
+          log(line);
+          tail.push(line);
+          if (tail.length > 30) tail.shift();
+        }
+      };
+      proc.stdout?.on('data', collectAndLog);
+      proc.stderr?.on('data', collectAndLog);
 
-    this.process.on('exit', (code) => {
-      log(`Marimo exited with code ${code}`);
-      this.process = null;
-      onExit?.(code);
+      let ready = false;
+
+      proc.on('exit', (code) => {
+        this.process = null;
+        if (!ready) {
+          const context = tail.slice(-8).join('\n');
+          reject(new Error(
+            `Marimo exited (code ${code}) before becoming ready.\n${context}`,
+          ));
+        } else {
+          onUnexpectedExit?.(code);
+        }
+      });
+
+      proc.on('error', (err) => {
+        if (!ready) reject(err);
+      });
+
+      // Poll marimo's HTTP port; fail fast if the process already died
+      const deadline = Date.now() + 60_000;
+      const poll = () => {
+        if (!proc.pid || proc.killed) return; // exit handler will reject
+
+        const req = http.get(`http://127.0.0.1:${config.port}/`, (res) => {
+          res.resume();
+          ready = true;
+          this.process = proc;
+          resolve();
+        });
+        req.setTimeout(1000, () => req.destroy());
+        req.on('error', () => {
+          if (proc.killed || !proc.pid) return;
+          if (Date.now() >= deadline) {
+            const context = tail.slice(-8).join('\n');
+            reject(new Error(
+              `Marimo did not start on port ${config.port} within 60s.\n${context}`,
+            ));
+          } else {
+            setTimeout(poll, 1000);
+          }
+        });
+      };
+
+      setTimeout(poll, 500); // brief pause so an immediate crash is captured first
     });
   }
 

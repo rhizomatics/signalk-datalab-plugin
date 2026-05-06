@@ -33,7 +33,10 @@ module.exports = function (app: any) {
     router.get('/ui', (req: any, res: any) => {
       if (!marimo?.running) {
         res.status(503).send(
-          '<h2>Marimo is not running</h2><p>Enable the plugin and ensure <code>marimo</code> is installed.</p>',
+          `<h2>Marimo is not running</h2>` +
+          `<p>Check the plugin status in the ` +
+          `<a href="/admin/#/serverConfiguration/plugins/${PLUGIN_ID}">SignalK admin panel</a> ` +
+          `for the error message.</p>`,
         );
         return;
       }
@@ -132,14 +135,6 @@ module.exports = function (app: any) {
           if (marimo) app.setPluginError(`Marimo exited unexpectedly (code ${code})`);
         },
       );
-    } catch (err) {
-      app.setPluginError(String(err));
-      return;
-    }
-
-    // Wait for marimo's HTTP server to actually be accepting connections
-    try {
-      await MarimoManager.waitUntilReady(configuredPort);
     } catch (err) {
       app.setPluginError(String(err));
       return;
