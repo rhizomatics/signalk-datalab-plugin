@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.9.0"
+__generated_with = "0.23.5"
 app = marimo.App(width="full", app_title="SignalK Data Notebooks")
 
 
@@ -8,72 +8,67 @@ app = marimo.App(width="full", app_title="SignalK Data Notebooks")
 def _():
     import marimo as mo
     import polars as pl
-    import duckdb
-    import os
     from datetime import date, timedelta
-
-    import niquests as http_client
-    return mo, pl, duckdb, os, date, timedelta, http_client
+    from pyodide.http import pyfetch
+    from urllib.parse import urlencode
+    import js
+    return date, js, mo, pl, pyfetch, timedelta, urlencode
 
 
 @app.cell(hide_code=True)
-def _(mo, os):
-    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
+def _(js, mo):
+    signalk_url = str(js.window.location.origin)
     mo.md(
         f"""
         # SignalK Data Notebooks
-        **Server** `{_url}`
+        **Server** `{signalk_url}`
 
         Select a provider and paths, set a date range, then press **Fetch data**.
         """
     )
-    return
+    return (signalk_url,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    token_input = mo.ui.text(value="", label="Auth token (optional)", kind="password")
+    return (token_input,)
 
 
 # ── Provider dropdown — populated from the history API ───────────────────────
 @app.cell(hide_code=True)
-def _(http_client, mo, os):
-    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
-    _token = os.environ.get("SIGNALK_TOKEN", "")
-    _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
-
+async def _(mo, pyfetch, signalk_url, token_input):
+    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
     try:
-        _r = http_client.get(
-            f"{_url}/signalk/v2/api/history/_providers",
+        _resp = await pyfetch(
+            f"{signalk_url}/signalk/v2/api/history/_providers",
             headers=_headers,
-            timeout=10,
         )
-        _r.raise_for_status()
-        _provider_options = _r.json()
+        _provider_options = await _resp.json()
     except Exception:
         _provider_options = []
 
-    _default = os.environ.get("SIGNALK_PROVIDER", "")
     provider_input = mo.ui.dropdown(
         options=_provider_options,
-        value=_default if _default in _provider_options else (_provider_options[0] if _provider_options else None),
+        value=_provider_options[0] if _provider_options else None,
         label="Provider",
     )
-    return provider_input,
+    return (provider_input,)
 
 
 # ── Path multiselect — re-fetched when provider changes ──────────────────────
 @app.cell(hide_code=True)
-def _(http_client, mo, os, provider_input):
-    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
-    _token = os.environ.get("SIGNALK_TOKEN", "")
-    _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
+async def _(mo, pyfetch, provider_input, signalk_url, token_input):
+    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
 
     _available_paths = []
     if provider_input.value:
         try:
-            _r = http_client.get(
-                f"{_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
+            _resp = await pyfetch(
+                f"{signalk_url}/signalk/v2/api/history/_providers/{provider_input.value}/paths",
                 headers=_headers,
-                timeout=10,
             )
-            _r.raise_for_status()
-            _available_paths = sorted(_r.json())
+            _available_paths = sorted(await _resp.json())
         except Exception:
             pass
 
@@ -95,26 +90,26 @@ def _(http_client, mo, os, provider_input):
             label="Paths (one per line)",
             rows=5,
         )
-    return paths_input,
+    return (paths_input,)
 
 
-# ── Date range + fetch button — independent of provider/paths ─────────────────
+# ── Date range + fetch button ─────────────────────────────────────────────────
 @app.cell(hide_code=True)
-def _(mo, date, timedelta):
+def _(date, mo, timedelta):
     _today = date.today()
     _yesterday = _today - timedelta(days=1)
     from_date = mo.ui.date(value=_yesterday, label="From")
     to_date = mo.ui.date(value=_today, label="To")
     fetch_btn = mo.ui.run_button(label="Fetch data")
-    return from_date, to_date, fetch_btn
+    return fetch_btn, from_date, to_date
 
 
-# ── Layout — displays all controls together ───────────────────────────────────
+# ── Layout — all controls together ───────────────────────────────────────────
 @app.cell(hide_code=True)
-def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
+def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date, token_input):
     mo.vstack(
         [
-            mo.hstack([provider_input, from_date, to_date], gap="1.5rem", align="end"),
+            mo.hstack([provider_input, token_input, from_date, to_date], gap="1.5rem", align="end"),
             paths_input,
             fetch_btn,
         ],
@@ -123,22 +118,23 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     return
 
 
-# ── Data fetch ────────────────────────────────────────────────────────────────
+# ── Data fetch — returns one DataFrame per path + a combined long-form ────────
 @app.cell
-def _(
-    duckdb,
+async def _(
     fetch_btn,
     from_date,
-    http_client,
     mo,
-    os,
     paths_input,
+    pyfetch,
     pl,
     provider_input,
+    signalk_url,
     to_date,
+    token_input,
+    urlencode,
 ):
-    _empty_schema = {"timestamp": pl.Utf8, "path": pl.Utf8, "value": pl.Float64, "source": pl.Utf8, "context": pl.Utf8}
-    signalk_data = pl.DataFrame(_empty_schema)
+    _empty = pl.DataFrame({"timestamp": pl.Series([], dtype=pl.Datetime), "value": pl.Series([], dtype=pl.Float64), "source": pl.Series([], dtype=pl.Utf8), "context": pl.Series([], dtype=pl.Utf8)})
+    signalk_data = _empty
     tables = {}
 
     mo.stop(
@@ -146,9 +142,7 @@ def _(
         mo.callout(mo.md("Press **Fetch data** above to load."), kind="info"),
     )
 
-    _url = os.environ.get("SIGNALK_URL", "http://localhost:3000")
-    _token = os.environ.get("SIGNALK_TOKEN", "")
-    _headers = {"Authorization": f"Bearer {_token}"} if _token else {}
+    _headers = {"Authorization": f"Bearer {token_input.value}"} if token_input.value else {}
 
     _paths = (
         paths_input.value
@@ -165,23 +159,17 @@ def _(
     if _provider:
         _params.append(("provider", _provider))
 
-    _raw = {}
+    _raw: dict = {}
     try:
-        _r = http_client.get(
-            f"{_url}/signalk/v1/history/values",
-            params=_params,
-            headers=_headers,
-            timeout=60,
-        )
-        _r.raise_for_status()
-        _raw = _r.json()
+        _url = f"{signalk_url}/signalk/v1/history/values?{urlencode(_params)}"
+        _resp = await pyfetch(_url, headers=_headers)
+        _raw = await _resp.json()
     except Exception as _e:
         mo.stop(True, mo.callout(mo.md(f"**Fetch failed**: {_e}"), kind="danger"))
 
     _context = _raw.get("context", "")
     _path_meta = _raw.get("values", [])
     _data_rows = _raw.get("data", [])
-
     _long_rows: list[dict] = []
 
     for _i, _meta in enumerate(_path_meta):
@@ -205,18 +193,14 @@ def _(
             for r in _path_rows
         )
 
-        _df = (
+        tables[_tname] = (
             pl.DataFrame(_path_rows)
             .with_columns([
                 pl.col("timestamp").str.to_datetime(strict=False, time_unit="us"),
                 pl.col("value").cast(pl.Float64, strict=False),
             ])
-            if _path_rows
-            else pl.DataFrame({"timestamp": [], "value": [], "source": [], "context": []})
+            if _path_rows else _empty
         )
-
-        tables[_tname] = _df
-        duckdb.register(_tname, _df)
 
     if _long_rows:
         signalk_data = (
@@ -226,91 +210,31 @@ def _(
                 pl.col("value").cast(pl.Float64, strict=False),
             ])
         )
-    duckdb.register("signalk_data", signalk_data)
 
     mo.vstack([
         mo.md(
-            f"Loaded **{len(tables)}** table(s): "
+            f"Loaded **{len(tables)}** path(s): "
             + ", ".join(f"`{t}`" for t in tables)
             + f"  ·  **{len(_long_rows):,}** total rows"
         ),
-        mo.md(
-            "**Available tables** (query with `mo.sql` below):\n"
-            + "\n".join(f"- `{t}` — {tables[t].height:,} rows" for t in tables)
-        ),
+        signalk_data,
     ])
     return signalk_data, tables
-
-
-@app.cell
-def _(mo, signalk_data):
-    mo.md(f"""
-    ---
-    ## SQL Explorer
-
-    The tables are available in `mo.sql()` cells. You have:
-
-    - **`signalk_data`** — combined long-form table ({signalk_data.height:,} rows): `timestamp`, `path`, `value`, `source`, `context`
-    - **individual path tables** — e.g. `navigation_speedOverGround`: `timestamp`, `value`, `source`, `context`
-
-    Tip: double-click a cell header to sort, or drag to resize columns.
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-    _q1 = mo.sql("""
-    -- Recent speed over ground
-    SELECT
-        timestamp,
-        value  AS speed_ms,
-        ROUND(value * 1.94384, 2) AS speed_kt
-    FROM navigation_speedOverGround
-    ORDER BY timestamp DESC
-    LIMIT 200
-    """)
-    return (_q1,)
-
-
-@app.cell
-def _(mo):
-    _q2 = mo.sql("""
-    -- Summary statistics per path
-    SELECT
-        path,
-        COUNT(*)                    AS n,
-        ROUND(AVG(value), 4)        AS avg,
-        ROUND(MIN(value), 4)        AS min,
-        ROUND(MAX(value), 4)        AS max,
-        MIN(timestamp)              AS first_ts,
-        MAX(timestamp)              AS last_ts
-    FROM signalk_data
-    GROUP BY path
-    ORDER BY path
-    """)
-    return (_q2,)
 
 
 @app.cell
 def _(mo):
     mo.md("""
     ---
-    ## Add your own queries
+    ## Analysis
 
-    Add new SQL cells with `mo.sql(\"...\")` or Python cells for custom analysis.
-    All standard DuckDB SQL is supported — window functions, `unnest`, `read_parquet()`, etc.
+    Add cells below. Each named path is also available as its own DataFrame
+    in the `tables` dict — e.g. `tables["navigation_speedOverGround"]`.
 
     ```python
-    # Example: per-minute average speed
-    result = mo.sql(\"\"\"
-    SELECT
-        time_bucket(INTERVAL '1 minute', timestamp) AS minute,
-        AVG(value) AS avg_speed_ms
-    FROM navigation_speedOverGround
-    GROUP BY 1
-    ORDER BY 1
-    \"\"\")
+    # Example: speed in knots
+    sog = tables["navigation_speedOverGround"]
+    sog.with_columns((pl.col("value") * 1.94384).alias("knots"))
     ```
     """)
     return

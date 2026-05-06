@@ -2,6 +2,7 @@ example-data/
 dist/
 .cache/
 .venv/
+public/
 
 # Logs
 logs

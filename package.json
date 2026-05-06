@@ -1,7 +1,7 @@
 {
-  "name": "signalk-data-notebooks",
-  "version": "0.1.0",
-  "description": "Marimo notebooks for SignalK data via History API",
+  "name": "signalk-datalab-plugin",
+  "version": "0.2.0",
+  "description": "Interactive data analysis notebooks for SignalK, running as WebAssembly in the browser",
   "main": "dist/index.js",
   "keywords": [
     "signalk-node-server-plugin",
@@ -10,22 +10,26 @@
     "signalk-category-data",
     "marimo",
     "notebooks",
-    "sql",
     "marine-data"
   ],
   "scripts": {
-    "build": "tsc && cp -r notebooks dist/notebooks",
+    "build:ts": "tsc",
+    "build:wasm": "marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f",
+    "build": "npm run build:ts",
     "watch": "tsc --watch",
     "prepare": "npm run build"
   },
   "dependencies": {
     "@signalk/server-api": "^2.22.0",
-    "http-proxy": "^1.18.1"
+    "express": ">=4"
+  },
+  "peerDependencies": {
+    "express": ">=4"
   },
   "devDependencies": {
-    "@types/http-proxy": "^1.17.16",
+    "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.9.3"
   },
   "license": "MIT"
 }
