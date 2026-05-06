@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import express from 'express';
 
-const PLUGIN_ID = 'signalk-data-notebooks';
+const PLUGIN_ID = 'signalk-datalab-plugin';
 
 module.exports = function (app: any) {
   const plugin: any = {
