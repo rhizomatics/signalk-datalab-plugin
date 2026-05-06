@@ -1,6 +1,9 @@
 {
   "name": "signalk-datalab-plugin",
   "version": "0.2.0",
+  "signalk": {
+    "displayName": "Data Lab"
+  },
   "description": "Interactive data analysis notebooks for SignalK, running as WebAssembly in the browser",
   "main": "dist/index.js",
   "keywords": [
