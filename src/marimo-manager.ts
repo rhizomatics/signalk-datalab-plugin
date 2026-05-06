@@ -1,6 +1,7 @@
 import { spawn, ChildProcess, execSync, spawnSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as http from 'http';
 
 export interface MarimoConfig {
   port: number;
@@ -27,8 +28,9 @@ export class MarimoManager {
    * Ensure the plugin's Python venv exists with required deps installed.
    * Uses `uv` when available, falls back to `python3 -m venv` + `pip`.
    * Re-runs install only when the dep list changes (tracked via a sentinel file).
+   * Returns a Promise — does NOT block the event loop.
    */
-  static ensureDeps(venvDir: string, log: (msg: string) => void): void {
+  static async ensureDeps(venvDir: string, log: (msg: string) => void): Promise<void> {
     const pythonBin = MarimoManager.venvBin(venvDir, 'python');
     const depsKey = DEPS.join('\n');
     const sentinel = path.join(venvDir, '.signalk-deps');
@@ -40,29 +42,24 @@ export class MarimoManager {
 
     if (alreadyInstalled) return;
 
+    // spawnSync only for a fast binary-existence check
     const hasUv = !spawnSync('uv', ['--version'], { stdio: 'ignore' }).error;
 
     if (!fs.existsSync(pythonBin)) {
       log('Creating Python virtual environment…');
-      const r = hasUv
-        ? spawnSync('uv', ['venv', venvDir], { encoding: 'utf-8', timeout: 60_000 })
-        : spawnSync('python3', ['-m', 'venv', venvDir], { encoding: 'utf-8', timeout: 60_000 });
-      logLines(r, log);
-      if (r.status !== 0) throw new Error(`venv creation failed: ${r.stderr}`);
+      await runCmd(
+        hasUv ? 'uv' : 'python3',
+        hasUv ? ['venv', venvDir] : ['-m', 'venv', venvDir],
+        log,
+      );
     }
 
     log(`Installing Python dependencies: ${DEPS.join(', ')} …`);
-    const r = hasUv
-      ? spawnSync('uv', ['pip', 'install', '--python', pythonBin, ...DEPS], {
-          encoding: 'utf-8',
-          timeout: 300_000,
-        })
-      : spawnSync(MarimoManager.venvBin(venvDir, 'pip'), ['install', ...DEPS], {
-          encoding: 'utf-8',
-          timeout: 300_000,
-        });
-    logLines(r, log);
-    if (r.status !== 0) throw new Error(`Dependency install failed: ${r.stderr}`);
+    if (hasUv) {
+      await runCmd('uv', ['pip', 'install', '--python', pythonBin, ...DEPS], log);
+    } else {
+      await runCmd(MarimoManager.venvBin(venvDir, 'pip'), ['install', ...DEPS], log);
+    }
 
     fs.writeFileSync(sentinel, depsKey);
     log('Python dependencies ready.');
@@ -101,7 +98,38 @@ export class MarimoManager {
     fs.copyFileSync(template, notebookPath);
   }
 
-  async start(config: MarimoConfig, log: (msg: string) => void): Promise<void> {
+  /**
+   * Poll marimo's HTTP port until it responds or the timeout elapses.
+   * Resolves when the server is accepting connections.
+   */
+  static waitUntilReady(port: number, timeoutMs = 60_000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const deadline = Date.now() + timeoutMs;
+
+      function attempt(): void {
+        const req = http.get(`http://127.0.0.1:${port}/`, (res) => {
+          res.resume();
+          resolve();
+        });
+        req.setTimeout(1000, () => req.destroy());
+        req.on('error', () => {
+          if (Date.now() >= deadline) {
+            reject(new Error(`Marimo did not start on port ${port} within ${timeoutMs / 1000}s`));
+          } else {
+            setTimeout(attempt, 1000);
+          }
+        });
+      }
+
+      attempt();
+    });
+  }
+
+  async start(
+    config: MarimoConfig,
+    log: (msg: string) => void,
+    onExit?: (code: number | null) => void,
+  ): Promise<void> {
     const marimo = MarimoManager.findMarimo(config.venvDir);
     const [bin, ...binArgs] = marimo.split(' ');
 
@@ -119,7 +147,6 @@ export class MarimoManager {
       SIGNALK_URL: config.signalkUrl,
       SIGNALK_PROVIDER: config.provider,
       ...(config.token ? { SIGNALK_TOKEN: config.token } : {}),
-      // suppress marimo's update-check network call
       MARIMO_SKIP_UPDATE_CHECK: '1',
     };
 
@@ -141,6 +168,7 @@ export class MarimoManager {
     this.process.on('exit', (code) => {
       log(`Marimo exited with code ${code}`);
       this.process = null;
+      onExit?.(code);
     });
   }
 
@@ -154,11 +182,25 @@ export class MarimoManager {
   }
 }
 
-function logLines(r: ReturnType<typeof spawnSync>, log: (msg: string) => void): void {
-  for (const chunk of [r.stdout, r.stderr]) {
-    if (!chunk) continue;
-    for (const line of String(chunk).split('\n')) {
-      if (line.trim()) log(line);
-    }
-  }
+function runCmd(bin: string, args: string[], log: (msg: string) => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(bin, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+
+    child.stdout?.on('data', (d: Buffer) => {
+      for (const line of d.toString().trimEnd().split('\n')) {
+        if (line.trim()) log(line);
+      }
+    });
+    child.stderr?.on('data', (d: Buffer) => {
+      for (const line of d.toString().trimEnd().split('\n')) {
+        if (line.trim()) log(line);
+      }
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${bin} exited with code ${code}`));
+    });
+    child.on('error', reject);
+  });
 }

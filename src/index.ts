@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as http from 'http';
-import * as net from 'net';
 import httpProxy from 'http-proxy';
 import { MarimoManager } from './marimo-manager';
 
@@ -107,8 +106,9 @@ module.exports = function (app: any) {
 
     const venvDir = path.join(app.getDataDirPath(), '.venv');
 
+    app.setPluginStatus('Installing Python dependencies…');
     try {
-      MarimoManager.ensureDeps(venvDir, log);
+      await MarimoManager.ensureDeps(venvDir, log);
     } catch (err) {
       app.setPluginError(`Dependency setup failed: ${err}`);
       return;
@@ -116,6 +116,7 @@ module.exports = function (app: any) {
 
     marimo = new MarimoManager();
 
+    app.setPluginStatus('Starting Marimo…');
     try {
       await marimo.start(
         {
@@ -127,7 +128,18 @@ module.exports = function (app: any) {
           venvDir,
         },
         log,
+        (code) => {
+          if (marimo) app.setPluginError(`Marimo exited unexpectedly (code ${code})`);
+        },
       );
+    } catch (err) {
+      app.setPluginError(String(err));
+      return;
+    }
+
+    // Wait for marimo's HTTP server to actually be accepting connections
+    try {
+      await MarimoManager.waitUntilReady(configuredPort);
     } catch (err) {
       app.setPluginError(String(err));
       return;
