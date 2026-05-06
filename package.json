@@ -1,0 +1,31 @@
+{
+  "name": "signalk-data-notebooks",
+  "version": "0.1.0",
+  "description": "Marimo reactive notebooks for SignalK data — History API, parquet, and custom SQL",
+  "main": "dist/index.js",
+  "keywords": [
+    "signalk-node-server-plugin",
+    "signalk-webapp",
+    "signalk-category-utility",
+    "signalk-category-data",
+    "marimo",
+    "notebooks",
+    "sql",
+    "marine-data"
+  ],
+  "scripts": {
+    "build": "tsc && cp -r notebooks dist/notebooks",
+    "watch": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@signalk/server-api": "^2.22.0",
+    "http-proxy": "^1.18.1"
+  },
+  "devDependencies": {
+    "@types/http-proxy": "^1.17.16",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  },
+  "license": "MIT"
+}
