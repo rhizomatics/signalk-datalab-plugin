@@ -17,7 +17,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(js, mo):
-    signalk_url = str(js.window.location.origin)
+    signalk_url = str(js.location.origin)
     mo.md(
         f"""
         # SignalK Data Notebooks
