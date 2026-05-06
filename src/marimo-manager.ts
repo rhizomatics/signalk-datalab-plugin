@@ -26,14 +26,21 @@ export class MarimoManager {
 
   /**
    * Ensure the plugin's Python venv exists with required deps installed.
-   * Uses `uv` when available, falls back to `python3 -m venv` + `pip`.
-   * Re-runs install only when the dep list changes (tracked via a sentinel file).
+   *
+   * Strategy: always use uv for the heavy install (much faster than pip on
+   * slow hardware). If uv isn't in the system PATH, we pip-install it into
+   * the venv first — it's a small self-contained binary and pip only touches
+   * it once.
+   *
+   * Re-runs install only when the dep list changes (tracked via sentinel file).
    * Returns a Promise — does NOT block the event loop.
    */
   static async ensureDeps(venvDir: string, log: (msg: string) => void): Promise<void> {
     const pythonBin = MarimoManager.venvBin(venvDir, 'python');
-    const depsKey = DEPS.join('\n');
-    const sentinel = path.join(venvDir, '.signalk-deps');
+    const pipBin    = MarimoManager.venvBin(venvDir, 'pip');
+    const uvBin     = MarimoManager.venvBin(venvDir, 'uv');
+    const depsKey   = DEPS.join('\n');
+    const sentinel  = path.join(venvDir, '.signalk-deps');
 
     const alreadyInstalled =
       fs.existsSync(pythonBin) &&
@@ -42,24 +49,33 @@ export class MarimoManager {
 
     if (alreadyInstalled) return;
 
-    // spawnSync only for a fast binary-existence check
-    const hasUv = !spawnSync('uv', ['--version'], { stdio: 'ignore' }).error;
+    const hasSystemUv = !spawnSync('uv', ['--version'], { stdio: 'ignore' }).error;
 
+    // Create venv if it doesn't exist yet
     if (!fs.existsSync(pythonBin)) {
-      log('Creating Python virtual environment…');
-      await runCmd(
-        hasUv ? 'uv' : 'python3',
-        hasUv ? ['venv', venvDir] : ['-m', 'venv', venvDir],
-        log,
-      );
+      if (hasSystemUv) {
+        log('Creating venv (uv)…');
+        await runCmd('uv', ['venv', venvDir], log);
+      } else {
+        log('Creating venv (python3)…');
+        await runCmd('python3', ['-m', 'venv', venvDir], log);
+      }
     }
 
-    log(`Installing Python dependencies: ${DEPS.join(', ')} …`);
-    if (hasUv) {
-      await runCmd('uv', ['pip', 'install', '--python', pythonBin, ...DEPS], log);
+    // Resolve which uv to use: system → venv → bootstrap via pip
+    let uv: string;
+    if (hasSystemUv) {
+      uv = 'uv';
+    } else if (fs.existsSync(uvBin)) {
+      uv = uvBin;
     } else {
-      await runCmd(MarimoManager.venvBin(venvDir, 'pip'), ['install', ...DEPS], log);
+      log('Bootstrapping uv for fast installs (one-time)…');
+      await runCmd(pipBin, ['install', '--quiet', 'uv'], log);
+      uv = uvBin;
     }
+
+    log(`Installing ${DEPS.join(', ')} …`);
+    await runCmd(uv, ['pip', 'install', '--python', pythonBin, ...DEPS], log);
 
     fs.writeFileSync(sentinel, depsKey);
     log('Python dependencies ready.');
@@ -70,7 +86,6 @@ export class MarimoManager {
     const marimoBin = MarimoManager.venvBin(venvDir, 'marimo');
     if (fs.existsSync(marimoBin)) return marimoBin;
 
-    // Fallback for users who manage their own environment
     for (const candidate of ['marimo', 'python3 -m marimo', 'python -m marimo']) {
       try {
         execSync(`${candidate.split(' ')[0]} --version`, { stdio: 'ignore' });
@@ -101,8 +116,8 @@ export class MarimoManager {
   /**
    * Spawn marimo and wait until its HTTP server is accepting connections.
    *
-   * Rejects immediately if the process exits before becoming ready (with the
-   * last lines of its output so the caller can surface a useful error).
+   * Rejects immediately if the process exits before becoming ready (includes
+   * the last lines of its output so the caller can surface a useful error).
    * After becoming ready, calls onUnexpectedExit if the process later dies.
    */
   async start(
@@ -133,7 +148,6 @@ export class MarimoManager {
     return new Promise((resolve, reject) => {
       const proc = spawn(marimoBin, args, { env, stdio: ['ignore', 'pipe', 'pipe'] });
 
-      // Rolling tail of recent output — included in error messages
       const tail: string[] = [];
       const collectAndLog = (d: Buffer) => {
         for (const line of d.toString().trimEnd().split('\n')) {
@@ -152,9 +166,7 @@ export class MarimoManager {
         this.process = null;
         if (!ready) {
           const context = tail.slice(-8).join('\n');
-          reject(new Error(
-            `Marimo exited (code ${code}) before becoming ready.\n${context}`,
-          ));
+          reject(new Error(`Marimo exited (code ${code}) before becoming ready.\n${context}`));
         } else {
           onUnexpectedExit?.(code);
         }
@@ -164,10 +176,9 @@ export class MarimoManager {
         if (!ready) reject(err);
       });
 
-      // Poll marimo's HTTP port; fail fast if the process already died
       const deadline = Date.now() + 60_000;
       const poll = () => {
-        if (!proc.pid || proc.killed) return; // exit handler will reject
+        if (proc.killed || !proc.pid) return;
 
         const req = http.get(`http://127.0.0.1:${config.port}/`, (res) => {
           res.resume();
@@ -180,16 +191,14 @@ export class MarimoManager {
           if (proc.killed || !proc.pid) return;
           if (Date.now() >= deadline) {
             const context = tail.slice(-8).join('\n');
-            reject(new Error(
-              `Marimo did not start on port ${config.port} within 60s.\n${context}`,
-            ));
+            reject(new Error(`Marimo did not start on port ${config.port} within 60s.\n${context}`));
           } else {
             setTimeout(poll, 1000);
           }
         });
       };
 
-      setTimeout(poll, 500); // brief pause so an immediate crash is captured first
+      setTimeout(poll, 500);
     });
   }
 
@@ -220,7 +229,7 @@ function runCmd(bin: string, args: string[], log: (msg: string) => void): Promis
 
     child.on('close', (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`${bin} exited with code ${code}`));
+      else reject(new Error(`${path.basename(bin)} exited with code ${code}`));
     });
     child.on('error', reject);
   });

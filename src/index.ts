@@ -24,23 +24,58 @@ module.exports = function (app: any) {
   let marimo: MarimoManager | null = null;
   let proxyServer: http.Server | null = null;
   let proxyInstance: httpProxy | null = null;
+  let configuredPort = DEFAULT_PORT;
+
+  // Tracks what the plugin is doing so /ui can show a useful message
+  type Phase = 'idle' | 'installing' | 'starting' | 'running' | 'error';
+  let phase: Phase = 'idle';
+  let phaseDetail = '';
+
+  function setPhase(p: Phase, detail = '') {
+    phase = p;
+    phaseDetail = detail;
+  }
 
   // registerWithRouter: GET /ui redirects to Marimo using request hostname
   // so remote access (over boat LAN) resolves correctly.
-  let configuredPort = DEFAULT_PORT;
-
   plugin.registerWithRouter = function (router: any) {
     router.get('/ui', (req: any, res: any) => {
-      if (!marimo?.running) {
-        res.status(503).send(
-          `<h2>Marimo is not running</h2>` +
-          `<p>Check the plugin status in the ` +
-          `<a href="/admin/#/serverConfiguration/plugins/${PLUGIN_ID}">SignalK admin panel</a> ` +
-          `for the error message.</p>`,
-        );
+      if (marimo?.running) {
+        res.redirect(`http://${req.hostname}:${configuredPort}/`);
         return;
       }
-      res.redirect(`http://${req.hostname}:${configuredPort}/`);
+
+      const adminUrl = `/admin/#/serverConfiguration/plugins/${PLUGIN_ID}`;
+
+      if (phase === 'installing' || phase === 'starting') {
+        const label = phase === 'installing'
+          ? 'Installing Python dependencies…'
+          : 'Starting Marimo…';
+        res.status(503).send(
+          `<!doctype html><html><head>` +
+          `<meta http-equiv="refresh" content="5">` +
+          `<title>Marimo starting</title></head><body>` +
+          `<h2>${label}</h2>` +
+          `<p>This page refreshes automatically every 5 seconds.</p>` +
+          `<p>See <a href="${adminUrl}">plugin status</a> for details.</p>` +
+          `</body></html>`,
+        );
+      } else if (phase === 'error') {
+        res.status(503).send(
+          `<!doctype html><html><head><title>Marimo error</title></head><body>` +
+          `<h2>Marimo failed to start</h2>` +
+          `<pre style="background:#fee;padding:1em">${escHtml(phaseDetail)}</pre>` +
+          `<p>See <a href="${adminUrl}">plugin status</a> for details.</p>` +
+          `</body></html>`,
+        );
+      } else {
+        res.status(503).send(
+          `<!doctype html><html><head><title>Marimo not running</title></head><body>` +
+          `<h2>Marimo is not running</h2>` +
+          `<p>Enable the plugin in the <a href="${adminUrl}">SignalK admin panel</a>.</p>` +
+          `</body></html>`,
+        );
+      }
     });
   };
 
@@ -88,37 +123,36 @@ module.exports = function (app: any) {
     const log = (msg: string) => app.debug(msg);
     configuredPort = options.port ?? DEFAULT_PORT;
 
-    // Resolve notebook path — use user's path or create one in the data directory
     const notebookPath =
       options.notebookPath?.trim() ||
       path.join(app.getDataDirPath(), 'notebooks', 'signalk.py');
 
-    // Seed from bundled template if the file doesn't exist yet
     const templateDir = path.join(__dirname, 'notebooks');
     try {
       MarimoManager.ensureNotebook(notebookPath, templateDir);
     } catch (err) {
+      setPhase('error', String(err));
       app.setPluginError(`Notebook setup failed: ${err}`);
       return;
     }
 
-    // Resolve the SignalK server URL for the notebook's History API calls
     const serverPort: number = app.getPort?.() ?? 3000;
-    const signalkUrl =
-      options.signalkUrl?.trim() || `http://localhost:${serverPort}`;
-
+    const signalkUrl = options.signalkUrl?.trim() || `http://localhost:${serverPort}`;
     const venvDir = path.join(app.getDataDirPath(), '.venv');
 
+    setPhase('installing');
     app.setPluginStatus('Installing Python dependencies…');
     try {
       await MarimoManager.ensureDeps(venvDir, log);
     } catch (err) {
+      setPhase('error', String(err));
       app.setPluginError(`Dependency setup failed: ${err}`);
       return;
     }
 
     marimo = new MarimoManager();
 
+    setPhase('starting');
     app.setPluginStatus('Starting Marimo…');
     try {
       await marimo.start(
@@ -132,14 +166,19 @@ module.exports = function (app: any) {
         },
         log,
         (code) => {
-          if (marimo) app.setPluginError(`Marimo exited unexpectedly (code ${code})`);
+          if (marimo) {
+            setPhase('error', `Marimo exited unexpectedly (code ${code})`);
+            app.setPluginError(`Marimo exited unexpectedly (code ${code})`);
+          }
         },
       );
     } catch (err) {
+      setPhase('error', String(err));
       app.setPluginError(String(err));
       return;
     }
 
+    setPhase('running');
     app.setPluginStatus(
       `Marimo on :${configuredPort} · /plugins/${PLUGIN_ID}/ui · ${notebookPath}`,
     );
@@ -152,8 +191,13 @@ module.exports = function (app: any) {
     proxyServer = null;
     marimo?.stop();
     marimo = null;
+    setPhase('idle');
     app.setPluginStatus('Stopped');
   };
 
   return plugin;
 };
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
