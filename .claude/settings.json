@@ -1,7 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(.venv/bin/marimo --version)",
+      "Bash(python3 -c \"import marimo; print\\(marimo.__version__\\)\")",
+      "Bash(.venv/bin/marimo export *)",
+      "Bash(marimo export *)",
+      "Read(//tmp/**)",
+      "Bash(ls /tmp/marimo-wasm-test/assets/ | head -20 && du -sh /tmp/marimo-wasm-test/)",
+      "Read(//private/tmp/marimo-wasm-test/assets/**)",
+      "Bash(grep -o 'src=\"[^\"]*\"' /tmp/marimo-wasm-test/index.html | head -10 && echo \"---\" && grep -o \"href=\\\\\"[^\\\\\"]*\\\\\"\" /tmp/marimo-wasm-test/index.html | head -10)",
+      "Read(//private/tmp/marimo-wasm-test/**)",
+      "Bash(npx --yes tsc --version)",
+      "Bash(node node_modules/typescript/lib/tsc.js)",
+      "Bash(node_modules/.bin/tsc --version)",
+      "Bash(git rm *)",
+      "Bash(git add *)"
     ]
   }
 }
