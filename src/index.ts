@@ -21,6 +21,12 @@ module.exports = function (app: any) {
     description: 'Data analyis notebooks for querying and visualizing the SignalK History API',
   };
 
+  // Serve the webapp entry point at /signalk-data-notebooks/* so the
+  // plugin appears correctly in SignalK's webapp launcher.
+  app.use(`/${PLUGIN_ID}`, (_req: any, res: any) => {
+    res.redirect(`/plugins/${PLUGIN_ID}/ui`);
+  });
+
   let marimo: MarimoManager | null = null;
   let proxyServer: http.Server | null = null;
   let proxyInstance: httpProxy | null = null;
