@@ -38,7 +38,8 @@ async def _(json, mo, pyfetch, signalk_url):
             f"{signalk_url}/signalk/v2/api/history/_providers",
             credentials="include",
         )
-        _provider_options = json.loads(await _resp.string())
+        _data = json.loads(await _resp.string())
+        _provider_options = list(_data.keys()) if isinstance(_data, dict) else _data
     except Exception:
         _provider_options = []
 
