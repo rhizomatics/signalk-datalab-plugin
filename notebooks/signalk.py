@@ -12,32 +12,7 @@ def _():
     import os
     from datetime import date, timedelta
 
-    try:
-        import httpx
-        _http = httpx
-    except ImportError:
-        import urllib.request, urllib.parse, json as _json
-
-        class _FakeResp:
-            def __init__(self, data):
-                self._data = data
-            def raise_for_status(self):
-                pass
-            def json(self):
-                return _json.loads(self._data)
-
-        class _FakeHttp:
-            @staticmethod
-            def get(url, params=None, headers=None, timeout=30):
-                if params:
-                    qs = urllib.parse.urlencode(params, doseq=True)
-                    url = f"{url}?{qs}"
-                req = urllib.request.Request(url, headers=headers or {})
-                with urllib.request.urlopen(req, timeout=timeout) as r:
-                    return _FakeResp(r.read())
-
-        _http = _FakeHttp
-
+    import niquests as _http
     return mo, pl, duckdb, os, date, timedelta, _http
 
 

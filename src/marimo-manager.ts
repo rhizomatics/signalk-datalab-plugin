@@ -1,4 +1,4 @@
-import { spawn, ChildProcess, execSync } from 'child_process';
+import { spawn, ChildProcess, execSync, spawnSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -9,26 +9,81 @@ export interface MarimoConfig {
   provider: string;
   token?: string;
   mode: 'edit' | 'run';
+  venvDir: string;
 }
+
+const DEPS = ['marimo[recommended]', 'niquests'];
 
 export class MarimoManager {
   private process: ChildProcess | null = null;
 
-  /** Resolve the marimo executable, preferring a venv if present. */
-  static findMarimo(): string {
-    // Check for marimo in common locations
+  private static venvBin(venvDir: string, name: string): string {
+    return process.platform === 'win32'
+      ? path.join(venvDir, 'Scripts', `${name}.exe`)
+      : path.join(venvDir, 'bin', name);
+  }
+
+  /**
+   * Ensure the plugin's Python venv exists with required deps installed.
+   * Uses `uv` when available, falls back to `python3 -m venv` + `pip`.
+   * Re-runs install only when the dep list changes (tracked via a sentinel file).
+   */
+  static ensureDeps(venvDir: string, log: (msg: string) => void): void {
+    const pythonBin = MarimoManager.venvBin(venvDir, 'python');
+    const depsKey = DEPS.join('\n');
+    const sentinel = path.join(venvDir, '.signalk-deps');
+
+    const alreadyInstalled =
+      fs.existsSync(pythonBin) &&
+      fs.existsSync(sentinel) &&
+      fs.readFileSync(sentinel, 'utf-8') === depsKey;
+
+    if (alreadyInstalled) return;
+
+    const hasUv = !spawnSync('uv', ['--version'], { stdio: 'ignore' }).error;
+
+    if (!fs.existsSync(pythonBin)) {
+      log('Creating Python virtual environment…');
+      const r = hasUv
+        ? spawnSync('uv', ['venv', venvDir], { encoding: 'utf-8', timeout: 60_000 })
+        : spawnSync('python3', ['-m', 'venv', venvDir], { encoding: 'utf-8', timeout: 60_000 });
+      logLines(r, log);
+      if (r.status !== 0) throw new Error(`venv creation failed: ${r.stderr}`);
+    }
+
+    log(`Installing Python dependencies: ${DEPS.join(', ')} …`);
+    const r = hasUv
+      ? spawnSync('uv', ['pip', 'install', '--python', pythonBin, ...DEPS], {
+          encoding: 'utf-8',
+          timeout: 300_000,
+        })
+      : spawnSync(MarimoManager.venvBin(venvDir, 'pip'), ['install', ...DEPS], {
+          encoding: 'utf-8',
+          timeout: 300_000,
+        });
+    logLines(r, log);
+    if (r.status !== 0) throw new Error(`Dependency install failed: ${r.stderr}`);
+
+    fs.writeFileSync(sentinel, depsKey);
+    log('Python dependencies ready.');
+  }
+
+  /** Return the marimo executable, preferring the managed venv. */
+  static findMarimo(venvDir: string): string {
+    const marimoBin = MarimoManager.venvBin(venvDir, 'marimo');
+    if (fs.existsSync(marimoBin)) return marimoBin;
+
+    // Fallback for users who manage their own environment
     for (const candidate of ['marimo', 'python3 -m marimo', 'python -m marimo']) {
       try {
-        const bin = candidate.split(' ')[0];
-        execSync(`${bin} --version`, { stdio: 'ignore' });
+        execSync(`${candidate.split(' ')[0]} --version`, { stdio: 'ignore' });
         return candidate;
       } catch {
         // try next
       }
     }
     throw new Error(
-      'marimo not found. Install it with: pip install marimo polars httpx\n' +
-      'See https://marimo.io for details.',
+      'marimo not found. Run the plugin once to auto-install, or: pip install "marimo[recommended]" niquests',
     );
   }
 
@@ -47,7 +102,7 @@ export class MarimoManager {
   }
 
   async start(config: MarimoConfig, log: (msg: string) => void): Promise<void> {
-    const marimo = MarimoManager.findMarimo();
+    const marimo = MarimoManager.findMarimo(config.venvDir);
     const [bin, ...binArgs] = marimo.split(' ');
 
     const args = [
@@ -96,5 +151,14 @@ export class MarimoManager {
 
   get running(): boolean {
     return this.process !== null;
+  }
+}
+
+function logLines(r: ReturnType<typeof spawnSync>, log: (msg: string) => void): void {
+  for (const chunk of [r.stdout, r.stderr]) {
+    if (!chunk) continue;
+    for (const line of String(chunk).split('\n')) {
+      if (line.trim()) log(line);
+    }
   }
 }

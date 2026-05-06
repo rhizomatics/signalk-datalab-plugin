@@ -105,6 +105,15 @@ module.exports = function (app: any) {
     const signalkUrl =
       options.signalkUrl?.trim() || `http://localhost:${serverPort}`;
 
+    const venvDir = path.join(app.getDataDirPath(), '.venv');
+
+    try {
+      MarimoManager.ensureDeps(venvDir, log);
+    } catch (err) {
+      app.setPluginError(`Dependency setup failed: ${err}`);
+      return;
+    }
+
     marimo = new MarimoManager();
 
     try {
@@ -115,6 +124,7 @@ module.exports = function (app: any) {
           signalkUrl,
           provider: options.provider ?? '',
           mode: options.mode ?? 'edit',
+          venvDir,
         },
         log,
       );
