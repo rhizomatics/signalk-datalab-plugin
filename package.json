@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build:ts": "tsc",
-    "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f",
+    "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f && cp notebooks/CLAUDE.md notebooks/logo.png public/",
     "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",
     "prepare": "npm run build"
