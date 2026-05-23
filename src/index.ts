@@ -8,7 +8,7 @@ module.exports = function (app: any) {
   const plugin: any = {
     id: PLUGIN_ID,
     name: 'Data Notebooks for SignalK',
-    description: 'Interactive data analysis notebooks running as WebAssembly in the browser — no Python required on the server.',
+    description: 'Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser — no Python required on the server.',
   };
 
   // Redirect the webapp entry point to the plugin router's /ui

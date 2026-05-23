@@ -4,7 +4,7 @@
   "signalk": {
     "displayName": "Data Lab"
   },
-  "description": "Interactive data analysis notebooks for SignalK, running as WebAssembly in the browser",
+  "description": "Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser",
   "main": "dist/index.js",
   "keywords": [
     "signalk-node-server-plugin",
