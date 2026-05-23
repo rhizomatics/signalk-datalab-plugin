@@ -17,11 +17,16 @@
   ],
   "scripts": {
     "build:ts": "tsc",
-    "build:wasm": "marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f",
-    "build": "npm run build:ts",
+    "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f",
+    "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",
     "prepare": "npm run build"
   },
+  "files": [
+    "dist/",
+    "public/",
+    "notebooks/"
+  ],
   "dependencies": {
     "@signalk/server-api": "^2.22.0",
     "express": ">=4"

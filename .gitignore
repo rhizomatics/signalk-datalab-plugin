@@ -3,6 +3,10 @@ dist/
 .cache/
 .venv/
 
+# marimo WASM build output (rebuilt by npm run build:wasm / prepare)
+public/assets/
+public/index.html
+
 # Logs
 logs
 *.log

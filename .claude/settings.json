@@ -15,7 +15,17 @@
       "Bash(node node_modules/typescript/lib/tsc.js)",
       "Bash(node_modules/.bin/tsc --version)",
       "Bash(git rm *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(pip show *)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 install *)",
+      "Bash(npm search *)",
+      "Bash(npm info *)",
+      "Bash(pipx --version)",
+      "Bash(pip3 index *)",
+      "Bash(python3 -m venv /Users/jey/Code/sailing/signalk-datalab/.venv)",
+      "Bash(/Users/jey/Code/sailing/signalk-datalab/.venv/bin/pip install *)",
+      "Bash(uv --version)"
     ]
   }
 }
