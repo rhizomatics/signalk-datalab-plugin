@@ -65,7 +65,8 @@ async def _(json, mo, pyfetch, provider_input, signalk_url, urlencode):
                 f"{signalk_url}/signalk/v2/api/history/paths?{_qs}",
                 credentials="include",
             )
-            _available_paths = sorted(json.loads(await _resp.string()))
+            _data = json.loads(await _resp.string())
+            _available_paths = sorted(_data) if isinstance(_data, list) else []
         except Exception:
             pass
 
