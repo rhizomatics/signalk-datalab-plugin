@@ -177,10 +177,20 @@ async def _(
         _tname = _path.replace(".", "_")
         _method = _meta.get("method", "")
 
+        def _to_float(v):
+            if v is None:
+                return None
+            if isinstance(v, (int, float)):
+                return float(v)
+            if isinstance(v, dict):
+                inner = v.get("value")
+                return float(inner) if isinstance(inner, (int, float)) else None
+            return None
+
         _path_rows = [
             {
                 "timestamp": _row[0],
-                "value": float(_row[_i + 1]) if _row[_i + 1] is not None else None,
+                "value": _to_float(_row[_i + 1]),
                 "method": _method,
                 "context": _context,
             }
