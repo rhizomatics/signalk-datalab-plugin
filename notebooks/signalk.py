@@ -3,17 +3,20 @@ import marimo
 __generated_with = "0.23.5"
 app = marimo.App(width="full", app_title="SignalK Data Notebooks")
 
-
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
+    return mo
+
+@app.cell(hide_code=True)
+def _():# -> tuple[type[date], ModuleType, ModuleType, Any, ModuleType...:
     import polars as pl
     import json
     from datetime import date, timedelta
     from pyodide.http import pyfetch
     from urllib.parse import urlencode
     import js
-    return date, js, json, mo, pl, pyfetch, timedelta, urlencode
+    return date, js, json, pl, pyfetch, timedelta, urlencode
 
 
 @app.cell(hide_code=True)
