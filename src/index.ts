@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import express from 'express';
 
 const PLUGIN_ID = 'signalk-datalab-plugin';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PACKAGE_NAME: string = require('../package.json').name;
 
 module.exports = function (app: any) {
   const plugin: any = {
@@ -11,12 +13,10 @@ module.exports = function (app: any) {
     description: 'Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser — no Python required on the server.',
   };
 
-  // Redirect the webapp entry point to the plugin router's /ui
-  app.use(`/${PLUGIN_ID}`, (_req: any, res: any) => {
-    res.redirect(`/plugins/${PLUGIN_ID}/ui`);
-  });
-
   const publicDir = path.join(__dirname, '..', 'public');
+
+  // Serve the WASM bundle at the scoped webapp URL SignalK uses for this package
+  app.use(`/${PACKAGE_NAME}`, express.static(publicDir));
 
   plugin.registerWithRouter = function (router: any) {
     // Serve all WASM bundle assets (JS chunks, fonts, icons, …)
