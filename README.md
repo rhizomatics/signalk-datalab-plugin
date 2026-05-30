@@ -7,3 +7,9 @@ run entirely in the browser, using WebAssembly (WASM) to keep the server load mi
 suited to Raspberry Pi, NanoPi etc servers.
 
 Intention is to have these wired up by default to SignalK History API.
+
+## Development
+
+### Linux Packages
+* node
+* librsvg2-bin
