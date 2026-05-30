@@ -21,7 +21,7 @@
     "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f && npm run build:icons && cp notebooks/CLAUDE.md public/",
     "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",
-    "prepare": "npm run build"
+    "prepack": "npm run build"
   },
   "files": [
     "dist/",
