@@ -40,8 +40,8 @@ module.exports = function (app: any) {
 
   plugin.schema = { type: 'object', properties: {} };
 
-  plugin.start = function (): void {
-    app.setPluginStatus('Data Notebooks ready — open /plugins/signalk-data-notebooks/ui');
+  plugin.start = function (_options: any): void {
+    app.setPluginStatus(`Data Notebooks ready — open /plugins/${PLUGIN_ID}/ui`);
   };
 
   plugin.stop = function (): void {
