@@ -1,15 +1,15 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "signalk": {
-    "displayName": "Data Lab"
+    "displayName": "Data Lab",
+    "appIcon": "./public/logo.svg"
   },
   "description": "Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser. ALPHA, use with caution. See also signalk-cli on PyPi.",
   "main": "dist/index.js",
   "keywords": [
     "signalk-node-server-plugin",
     "signalk-webapp",
-    "signalk-category-utility",
     "signalk-category-data",
     "marimo",
     "notebooks",
@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build:ts": "tsc",
-    "build:icons": "rsvg-convert -w 512 -h 512 notebooks/logo.svg -o public/android-chrome-512x512.png && rsvg-convert -w 192 -h 192 notebooks/logo.svg -o public/android-chrome-192x192.png && rsvg-convert -w 180 -h 180 notebooks/logo.svg -o public/apple-touch-icon.png && rsvg-convert -w 32 -h 32 notebooks/logo.svg -o public/favicon-32x32.png && rsvg-convert -w 16 -h 16 notebooks/logo.svg -o public/favicon-16x16.png && cp notebooks/logo.svg public/logo.svg",
+    "build:icons": "rsvg-convert -w 512 -h 512 assets/logo.svg -o public/android-chrome-512x512.png && rsvg-convert -w 192 -h 192 assets/logo.svg -o public/android-chrome-192x192.png && rsvg-convert -w 180 -h 180 assets/logo.svg -o public/apple-touch-icon.png && rsvg-convert -w 32 -h 32 assets/logo.svg -o public/favicon-32x32.png && rsvg-convert -w 16 -h 16 assets/logo.svg -o public/favicon-16x16.png && cp assets/logo.svg public/logo.svg",
     "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f && npm run build:icons && cp notebooks/CLAUDE.md public/",
     "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",

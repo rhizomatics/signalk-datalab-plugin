@@ -2,6 +2,9 @@ example-data/
 dist/
 .cache/
 .venv/
+.claude/
+.DS_Store
+**/.DS_Store
 
 # marimo WASM build output (rebuilt by npm run build:wasm / prepare)
 public/
