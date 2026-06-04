@@ -1,10 +1,10 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "signalk": {
     "displayName": "Data Lab"
   },
-  "description": "Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser",
+  "description": "Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser. ALPHA, use with caution. See also signalk-cli on PyPi.",
   "main": "dist/index.js",
   "keywords": [
     "signalk-node-server-plugin",
@@ -29,7 +29,7 @@
     "notebooks/"
   ],
   "dependencies": {
-    "@signalk/server-api": "^2.22.0",
+    "@signalk/server-api": ">=2.22.0",
     "express": ">=4"
   },
   "peerDependencies": {
@@ -43,13 +43,13 @@
   "license": "APACHE-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeyrb/signalk-datalab.git"
+    "url": "git+https://github.com/rhizomatics/signalk-datalab-plugin.git"
   },
   "author": "jey burrows",
   "type": "commonjs",
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/jeyrb/signalk-datalab/issues"
+    "url": "https://github.com/rhizomatics/signalk-datalab-plugin/issues"
   },
-  "homepage": "https://github.com/jeyrb/signalk-datalab#readme"
+  "homepage": "https://github.com/rhizomatics/signalk-datalab-plugin#readme"
 }
