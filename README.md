@@ -26,6 +26,12 @@ uv pip install -r requirements.txt
 marimo run notebooks/signalk.py
 ```
 
+### Release
+
+```bash
+npm publish --tag latest --access public
+```
+
 ## Also Check
 
 * [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather)
