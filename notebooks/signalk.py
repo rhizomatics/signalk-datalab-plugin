@@ -1,21 +1,63 @@
 import marimo
 
-__generated_with = "0.23.5"
-app = marimo.App(width="full", app_title="SignalK Data Notebooks")
+__generated_with = "0.23.8"
+app = marimo.App(width="full", app_title="SignalK Data Lab")
+
 
 @app.cell(hide_code=True)
 def _():
     import marimo as mo
-    return mo
+
+    return (mo,)
+
 
 @app.cell(hide_code=True)
-def _():# -> tuple[type[date], ModuleType, ModuleType, Any, ModuleType...:
+def _():
     import polars as pl
     import json
+    import os
     from datetime import date, timedelta
-    from pyodide.http import pyfetch
     from urllib.parse import urlencode
-    import js
+
+    try:
+        from pyodide.http import pyfetch
+        import js
+    except ImportError:
+        import asyncio
+        import urllib.request
+
+        class _Response:
+            def __init__(self, data, status):
+                self._data = data
+                self.status = status
+                self.ok = 200 <= status < 300
+
+            async def string(self):
+                return self._data.decode("utf-8")
+
+            async def json(self):
+                return json.loads(self._data)
+
+        async def pyfetch(url, **kwargs):
+            method = kwargs.get("method", "GET")
+            headers = kwargs.get("headers", {})
+            body = kwargs.get("body")
+
+            def _do_request():
+                req = urllib.request.Request(url, data=body, headers=headers, method=method)
+                with urllib.request.urlopen(req) as resp:
+                    return resp.read(), resp.status
+
+            data, status = await asyncio.get_event_loop().run_in_executor(None, _do_request)
+            return _Response(data, status)
+
+        class _Location:
+            origin = os.environ.get("SIGNALK_URL", "http://localhost:3000")
+
+        class _Js:
+            location = _Location()
+
+        js = _Js()
     return date, js, json, pl, pyfetch, timedelta, urlencode
 
 
@@ -24,8 +66,8 @@ def _(js, mo):
     signalk_url = str(js.location.origin)
     mo.md(
         f"""
-        # SignalK Data Notebooks
-        **Server** `{signalk_url}`
+        # SignalK Data Lab
+        **History API Server** `{signalk_url}`
 
         Select a provider and paths, set a date range, then press **Fetch data**.
         """
@@ -33,7 +75,6 @@ def _(js, mo):
     return (signalk_url,)
 
 
-# ── Provider dropdown ─────────────────────────────────────────────────────────
 @app.cell(hide_code=True)
 async def _(json, mo, pyfetch, signalk_url):
     try:
@@ -54,9 +95,8 @@ async def _(json, mo, pyfetch, signalk_url):
     return (provider_input,)
 
 
-# ── Path multiselect — /v2/api/history/paths ──────────────────────────────────
 @app.cell(hide_code=True)
-async def _(json, mo, pyfetch, provider_input, signalk_url, urlencode):
+async def _(json, mo, provider_input, pyfetch, signalk_url, urlencode):
     _available_paths = []
     if provider_input.value:
         try:
@@ -91,7 +131,6 @@ async def _(json, mo, pyfetch, provider_input, signalk_url, urlencode):
     return (paths_input,)
 
 
-# ── Date range + fetch button ─────────────────────────────────────────────────
 @app.cell(hide_code=True)
 def _(date, mo, timedelta):
     _today = date.today()
@@ -102,7 +141,6 @@ def _(date, mo, timedelta):
     return fetch_btn, from_date, to_date
 
 
-# ── Layout ────────────────────────────────────────────────────────────────────
 @app.cell(hide_code=True)
 def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     mo.vstack(
@@ -116,7 +154,6 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     return
 
 
-# ── Data fetch — /v2/api/history/values ───────────────────────────────────────
 @app.cell
 async def _(
     fetch_btn,
@@ -124,9 +161,9 @@ async def _(
     json,
     mo,
     paths_input,
-    pyfetch,
     pl,
     provider_input,
+    pyfetch,
     signalk_url,
     to_date,
     urlencode,
@@ -229,7 +266,7 @@ async def _(
         ),
         signalk_data,
     ])
-    return signalk_data, tables
+    return
 
 
 @app.cell

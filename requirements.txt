@@ -1,0 +1,4 @@
+# for local notebook dev only
+marimo
+polars
+js

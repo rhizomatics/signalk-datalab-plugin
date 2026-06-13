@@ -9,7 +9,7 @@ const PACKAGE_NAME: string = require('../package.json').name;
 module.exports = function (app: any) {
   const plugin: any = {
     id: PLUGIN_ID,
-    name: 'Data Notebooks for SignalK',
+    name: 'SignalK Data Lab',
     description: 'Interactive data analysis notebooks for SignalK, using Marimo runnuing as WebAssembly in the browser — no Python required on the server.',
   };
 
@@ -41,7 +41,7 @@ module.exports = function (app: any) {
   plugin.schema = { type: 'object', properties: {} };
 
   plugin.start = function (_options: any): void {
-    app.setPluginStatus(`Data Notebooks ready — open /plugins/${PLUGIN_ID}/ui`);
+    app.setPluginStatus(`Data Lab Notebooks ready — open /plugins/${PLUGIN_ID}/ui`);
   };
 
   plugin.stop = function (): void {

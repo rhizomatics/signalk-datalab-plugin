@@ -1,6 +1,6 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "signalk": {
     "displayName": "Data Lab",
     "appIcon": "logo.svg"

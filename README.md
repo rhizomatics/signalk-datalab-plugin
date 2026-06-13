@@ -1,4 +1,4 @@
-# Data Notebooks for SignalK
+# SignalK Data Lab
 
 ## ALPHA - Use with care
 
@@ -14,6 +14,17 @@ the SignalK History API
 ### Linux Packages
 * node
 * librsvg2-bin
+
+### Local Execution
+
+To run the notebook outside of SignalK / webbrowser context, use
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+marimo run notebooks/signalk.py
+```
 
 ## Also Check
 
