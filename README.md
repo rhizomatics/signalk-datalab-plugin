@@ -29,6 +29,7 @@ marimo run notebooks/signalk.py
 ### Release
 
 ```bash
+git tag -f latest
 npm publish --tag latest --access public
 ```
 
