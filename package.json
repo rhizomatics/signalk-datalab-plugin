@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build:ts": "tsc",
-    "build:icons": "rsvg-convert -w 512 -h 512 assets/logo.svg -o public/android-chrome-512x512.png && rsvg-convert -w 192 -h 192 assets/logo.svg -o public/android-chrome-192x192.png && rsvg-convert -w 180 -h 180 assets/logo.svg -o public/apple-touch-icon.png && rsvg-convert -w 32 -h 32 assets/logo.svg -o public/favicon-32x32.png && rsvg-convert -w 16 -h 16 assets/logo.svg -o public/favicon-16x16.png && cp assets/logo.svg public/logo.svg",
+    "build:icons": "node scripts/build-icons.js",
     "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f && npm run build:icons && cp notebooks/CLAUDE.md public/",
     "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",
@@ -36,6 +36,7 @@
     "express": ">=4"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
     "typescript": "^5.9.3"
