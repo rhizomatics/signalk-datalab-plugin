@@ -9,3 +9,6 @@ on:
 jobs:
   test:
     uses: SignalK/signalk-server/.github/workflows/plugin-ci.yml@master
+    with:
+      build-command: 'curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="$HOME/.local/bin:$PATH" && npm run build:ts && npm run build:wasm'
+      enable-armv7: false

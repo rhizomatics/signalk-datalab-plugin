@@ -11,11 +11,12 @@ the SignalK History API
 
 ## Development
 
-### Linux Packages
+### Linux Packages
+
 * node
 * librsvg2-bin
 
-### Local Execution
+### Local Execution
 
 To run the notebook outside of SignalK / webbrowser context, use
 

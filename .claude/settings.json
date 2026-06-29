@@ -28,7 +28,9 @@
       "Bash(uv --version)",
       "Bash(cp /Users/jey/Code/sailing/signalk-datalab/public/CLAUDE.md /Users/jey/Code/sailing/signalk-datalab/notebooks/CLAUDE.md)",
       "Bash(cp /Users/jey/Code/sailing/signalk-datalab/public/logo.png /Users/jey/Code/sailing/signalk-datalab/notebooks/logo.png)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(gh api *)",
+      "Bash(rm -f plugin-caller-example.yml)"
     ]
   }
 }
