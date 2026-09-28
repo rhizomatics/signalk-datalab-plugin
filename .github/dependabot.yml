@@ -1,0 +1,45 @@
+# Dependency updates. Shape shared across rhizomatics repos: see templates/README.md in rhizomatics/.github.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      pip-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directory: /packages/ibis-signalk
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      ibis-signalk-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
