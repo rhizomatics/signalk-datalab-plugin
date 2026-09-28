@@ -40,7 +40,7 @@
     "@resvg/resvg-js": "^2.6.2",
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "license": "APACHE-2.0",
   "repository": {
