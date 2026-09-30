@@ -6,6 +6,8 @@ dist/
 notebooks/__marimo__/
 .DS_Store
 **/.DS_Store
+**/__pycache__
+**/__marimo__
 
 # marimo WASM build output (rebuilt by npm run build:wasm / prepare)
 public/
