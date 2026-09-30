@@ -1,9 +1,0 @@
-src/
-assets/
-tsconfig.json
-.venv/
-example-data/
-.cache/
-*.tsbuildinfo
-*.log
-node_modules/
