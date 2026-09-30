@@ -1,20 +1,15 @@
 import * as path from "path";
 import * as fs from "fs";
-import express, { IRouter } from "express";
+import express from "express";
 import type { Plugin, PluginRouter, ServerAPI } from "@signalk/server-api";
 
 const PLUGIN_ID = "signalk-datalab-plugin";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const PACKAGE_NAME: string = require("../package.json").name;
 
-// The server also passes its Express app, which ServerAPI doesn't type
-type App = ServerAPI & Pick<IRouter, "use">;
-
-module.exports = function (app: App): Plugin {
+module.exports = function (app: ServerAPI): Plugin {
+  // SignalK serves public/ at /@rhizomatics/signalk-datalab-plugin itself, as
+  // the package has the signalk-webapp keyword; this router adds /ui under
+  // /plugins/<id>, which is for admins only
   const publicDir = path.join(__dirname, "..", "public");
-
-  // Serve the WASM bundle at the scoped webapp URL SignalK uses for this package
-  app.use(`/${PACKAGE_NAME}`, express.static(publicDir));
 
   const plugin: Plugin = {
     id: PLUGIN_ID,

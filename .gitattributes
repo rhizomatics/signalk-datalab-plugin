@@ -1,0 +1,2 @@
+# Keep LF line endings everywhere, so the formatting check passes on Windows
+* text=auto eol=lf

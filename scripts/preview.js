@@ -11,9 +11,9 @@ const port = Number(process.env.PORT || 8080);
 const target = new URL(process.env.SIGNALK_URL || "http://localhost:3000");
 const client = target.protocol === "https:" ? https : http;
 
-const app = express();
+const web = express();
 
-app.use("/signalk", (req, res) => {
+web.use("/signalk", (req, res) => {
   const upstream = client.request(
     {
       protocol: target.protocol,
@@ -34,9 +34,9 @@ app.use("/signalk", (req, res) => {
   req.pipe(upstream);
 });
 
-app.use(express.static(path.join(root, "public")));
+web.use(express.static(path.join(root, "public")));
 
-const server = app.listen(port, () => {
+const server = web.listen(port, () => {
   console.log(`Data Lab preview on http://localhost:${port}/ (SignalK API -> ${target.origin})`);
 });
 
