@@ -1,6 +1,12 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.3.1 - Sept 2026
+
+## 🐛 Bug fixes
+
+- Fix for nullable float64 values, for example querying tide heights
+
 # v0.3.0 - Sept 2026
 
 ## ✨ Enhancements
