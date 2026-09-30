@@ -12,5 +12,4 @@ jobs:
     with:
       build-command: 'curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="$HOME/.local/bin:$PATH" && npm run build:ts && npm run build:wasm'
       enable-armv7: false
-      coverage-command: npm run coverage
       format-check-command: npm run fmt:check
