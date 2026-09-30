@@ -1,6 +1,6 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "signalk": {
     "displayName": "Data Lab",
     "appIcon": "logo.svg"
@@ -13,16 +13,22 @@
     "signalk-category-data",
     "signalk-category-database",
     "marimo",
+    "data",
     "notebooks",
     "marine-data"
   ],
   "scripts": {
     "build:ts": "tsc",
     "build:icons": "node scripts/build-icons.js",
-    "build:wasm": "uv run --with marimo marimo export html-wasm notebooks/signalk.py -o public/ --mode edit -f && npm run build:icons && cp notebooks/CLAUDE.md public/",
+    "build:wasm": "node scripts/build-wasm.js && npm run build:wheel && npm run build:icons && cp notebooks/CLAUDE.md public/",
     "build": "npm run build:ts && npm run build:wasm",
     "watch": "tsc --watch",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "preview": "npm run build:wasm && node scripts/preview.js",
+    "preview:serve": "node scripts/preview.js",
+    "agent": "uv run --with-requirements requirements.txt --with \"marimo[mcp]\" marimo edit notebooks/signalk.py --watch --mcp --no-token --port 2718",
+    "lab": "uv run --project packages/ibis-signalk --with-requirements requirements.txt --with \"signalk-cli[feather]\" marimo edit . --watch",
+    "build:wheel": "node scripts/build-wheel.js"
   },
   "files": [
     "dist/",
@@ -30,19 +36,16 @@
     "notebooks/"
   ],
   "dependencies": {
-    "@signalk/server-api": ">=2.22.0",
-    "express": ">=4"
-  },
-  "peerDependencies": {
     "express": ">=4"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "@signalk/server-api": "^2.33.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
     "typescript": "^5.9.3"
   },
-  "license": "APACHE-2.0",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rhizomatics/signalk-datalab-plugin.git"

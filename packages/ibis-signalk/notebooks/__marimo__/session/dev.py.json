@@ -6,26 +6,13 @@
   },
   "cells": [
     {
-      "id": "Hbol",
-      "code_hash": "e57f85affff9fbc1aa79e959202cabba",
+      "id": "setup",
+      "code_hash": "6a8d07e954427806148c4103a4fc59c9",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"ibis-signalk-dev-notebook\">ibis-signalk dev notebook</h1>\n<span class=\"paragraph\">Target server: <code>http://10.36.10.20</code></span></span>"
-          }
-        }
-      ],
-      "console": []
-    },
-    {
-      "id": "MJUe",
-      "code_hash": "732772856ddc455a77d5daec1624b7c5",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"ibis-signalk-dev-notebook\">ibis-signalk dev notebook</h1>\n<span class=\"paragraph\">Target server: <code>http://10.111.10.100:9999</code> \u00b7 History provider: <code>signalk-parquet</code></span></span>"
           }
         }
       ],
@@ -38,7 +25,7 @@
         {
           "type": "data",
           "data": {
-            "application/json": "[\"electrical\", \"environment\", \"navigation\", \"network\", \"networking\", \"sensors\"]"
+            "application/json": "[\"navigation\"]"
           }
         }
       ],
@@ -46,12 +33,12 @@
     },
     {
       "id": "bkHC",
-      "code_hash": "91198103b4ba517ebec6d2305402408a",
+      "code_hash": "6bf803c1c4b3e66104c9204b8b16b2b2",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='bkHC-0' random-id='b4ab24c6-0c19-b7b6-0cbe-b15d92a9370a'><marimo-dropdown data-initial-value='[&quot;electrical&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eNamespace&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;electrical&quot;,&quot;environment&quot;,&quot;navigation&quot;,&quot;network&quot;,&quot;networking&quot;,&quot;sensors&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='bkHC-0' random-id='8026ba7b-6800-2153-5c96-b2e9e3fa63a2'><marimo-dropdown data-initial-value='[&quot;navigation&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eNamespace&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;navigation&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
           }
         }
       ],
@@ -59,12 +46,12 @@
     },
     {
       "id": "lEQa",
-      "code_hash": "f55d40d8c111ffa7965bf3a34058ea34",
+      "code_hash": "9d6c5d62bd9e15fafa5a332e1be632dc",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<pre class='text-xs'>ibis.Schema {\n  timestamp                                   timestamp(&#x27;UTC&#x27;)\n  electrical__batteries__f2f3c2__voltage      float64\n  electrical__batteries__f50e1f__voltage      float64\n  electrical__batteries__undefined__voltage   float64\n  electrical__solar__mppt10020__chargingMode  float64\n  electrical__solar__mppt10020__current       float64\n  electrical__solar__mppt10020__loadCurrent   float64\n  electrical__solar__mppt10020__panelPower    float64\n  electrical__solar__mppt10020__voltage       float64\n  electrical__solar__mppt10020__yieldToday    float64\n}</pre>"
+            "text/html": "<pre class='text-xs'>ibis.Schema {\n  timestamp                          timestamp(&#x27;UTC&#x27;)\n  navigation__gnss__antennaAltitude  float64\n  navigation__position               json\n}</pre>"
           }
         }
       ],
@@ -72,12 +59,12 @@
     },
     {
       "id": "PKri",
-      "code_hash": "8499e763d4632fcc98f48b50cd17a2e2",
+      "code_hash": "0a20ce1bb555c4d19b63106356bd315f",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: space-between;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='PKri-0' random-id='504c307d-c9b2-7b19-0ab1-b8df02c43aa6'><marimo-slider data-initial-value='60' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eLookback window (seconds)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='10' data-stop='600' data-step='10' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element><marimo-ui-element object-id='PKri-1' random-id='66a93aa9-8aa5-9ca0-3b0f-8c18388a8788'><marimo-dropdown data-initial-value='[&quot;s&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eAggregate resolution&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;s&quot;,&quot;m&quot;,&quot;h&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: space-between;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='PKri-0' random-id='baff8b71-81ff-ab62-6a8c-ff94732f23e7'><marimo-slider data-initial-value='60' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eLookback window (hours)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='10' data-stop='600' data-step='10' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element><marimo-ui-element object-id='PKri-1' random-id='b0a651e7-b016-5301-b0b5-70cf7f1c3138'><marimo-dropdown data-initial-value='[&quot;m&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eAggregate resolution&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;s&quot;,&quot;m&quot;,&quot;h&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element></div>"
           }
         }
       ],
@@ -85,12 +72,12 @@
     },
     {
       "id": "Xref",
-      "code_hash": "7b1cd4a07870697c508fadfad673cee4",
+      "code_hash": "fd2527ad5b8090ceb098c482de388a73",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='Xref-0' random-id='9923c9ac-aebc-8565-a47a-bea9f7674b59'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:24&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:2.981,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:25&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:2.841,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:13.38,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:0.0},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:27&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:2.981,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:28&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:13.38,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:0.0},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:35&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:2.981,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:2.841,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:37&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:13.38,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:0.0},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:38&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:2.981,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:2.841,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:47&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:0.0,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:13.38,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:0.0},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:51&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:2.981,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN},{&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2026-07-01 21:47:57&#92;&quot;,&#92;&quot;electrical__batteries__f2f3c2__voltage&#92;&quot;:NaN,&#92;&quot;electrical__batteries__f50e1f__voltage&#92;&quot;:2.837,&#92;&quot;electrical__batteries__undefined__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__chargingMode&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__current&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__loadCurrent&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__panelPower&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__voltage&#92;&quot;:NaN,&#92;&quot;electrical__solar__mppt10020__yieldToday&#92;&quot;:NaN}]&quot;' data-total-rows='19' data-total-columns='10' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;timestamp&quot;,[&quot;datetime&quot;,&quot;datetime64[us]&quot;]],[&quot;electrical__batteries__f2f3c2__voltage&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__batteries__f50e1f__voltage&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__batteries__undefined__voltage&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__chargingMode&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__current&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__loadCurrent&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__panelPower&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__voltage&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;electrical__solar__mppt10020__yieldToday&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-hidden-columns='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='Xref-0' random-id='3982a52c-b36f-7dcf-10c0-ca1b3cc29801'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[]&quot;' data-total-rows='0' data-total-columns='2' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='false' data-page-size='10' data-field-types='[[&quot;timestamp&quot;,[&quot;datetime&quot;,&quot;datetime64[us]&quot;]],[&quot;navigation__gnss__antennaAltitude&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-search='true' data-show-column-summaries='false' data-show-data-types='true' data-show-page-size-selector='false' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-hidden-columns='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
           }
         }
       ],

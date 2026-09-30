@@ -30,7 +30,24 @@
       "Bash(cp /Users/jey/Code/sailing/signalk-datalab/public/logo.png /Users/jey/Code/sailing/signalk-datalab/notebooks/logo.png)",
       "Bash(git remote *)",
       "Bash(gh api *)",
-      "Bash(rm -f plugin-caller-example.yml)"
+      "Bash(rm -f plugin-caller-example.yml)",
+      "Bash(uv run --with-requirements requirements.txt marimo check *)",
+      "Bash(uv run --with-requirements requirements.txt marimo export *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/marimo-check.sh",
+            "timeout": 90,
+            "statusMessage": "marimo check"
+          }
+        ]
+      }
     ]
   }
 }

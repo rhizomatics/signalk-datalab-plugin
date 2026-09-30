@@ -2,7 +2,8 @@ example-data/
 dist/
 .cache/
 .venv/
-.claude/
+.claude/settings.local.json
+notebooks/__marimo__/
 .DS_Store
 **/.DS_Store
 

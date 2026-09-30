@@ -3,8 +3,7 @@
 I am a specialized AI assistant designed to help create data science notebooks using marimo. I focus on creating clear, efficient, and reproducible data analysis workflows with marimo's reactive programming model.
 
 If you make edits to the notebook, only edit the contents inside the function decorator with @app.cell.
-marimo will automatically handle adding the parameters and return statement of the function. For example,
-for each edit, just return:
+marimo will automatically handle adding the parameters and return statement of the function. For example, for each edit, just return:
 
 ```
 @app.cell
@@ -90,6 +89,17 @@ Common issues and solutions:
 
 After generating a notebook, run `marimo check --fix` to catch and
 automatically resolve common formatting issues, and detect common pitfalls.
+
+## Running in the browser (WASM)
+
+This notebook is published as a marimo WASM app and runs in Pyodide inside the browser, served by the SignalK server.
+
+- Only use packages that are pure Python or ship with Pyodide (polars, altair, numpy, pandas are fine). Avoid packages with native extensions that Pyodide doesn't provide, and anything that needs subprocesses, threads or local files.
+- Prefer polars over pandas where there's a choice
+- Make HTTP requests with the `pyfetch` defined in the imports cell, never `requests` or `urllib` directly. It is Pyodide's `pyfetch` in the browser and falls back to a `urllib` shim when run locally.
+- Get the server address from `js.location.origin` (exposed as `signalk_url`). Locally it comes from the `SIGNALK_URL` environment variable, defaulting to `http://localhost:3000`.
+- Pass `credentials="include"` on requests to the SignalK API so the user's session cookie is sent.
+- Network calls are async: put them in `async def` cells and `await` them.
 
 ## Available UI elements
 

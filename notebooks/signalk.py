@@ -4,15 +4,13 @@ __generated_with = "0.23.8"
 app = marimo.App(width="full", app_title="SignalK Data Lab")
 
 
-@app.cell(hide_code=True)
-def _():
+with app.setup(hide_code=True):
     import marimo as mo
-
-    return (mo,)
-
-
-@app.cell(hide_code=True)
-def _():
+    import polars as pl
+    import json
+    import os
+    from datetime import date, timedelta
+    from urllib.parse import urlencode
     import polars as pl
     import json
     import os
@@ -38,6 +36,8 @@ def _():
             async def json(self):
                 return json.loads(self._data)
 
+        # Local stand-in for pyodide's pyfetch. Browser-only options such as
+        # credentials="include" are accepted and ignored.
         async def pyfetch(url, **kwargs):
             method = kwargs.get("method", "GET")
             headers = kwargs.get("headers", {})
@@ -58,7 +58,6 @@ def _():
             location = _Location()
 
         js = _Js()
-    return date, js, json, pl, pyfetch, timedelta, urlencode
 
 
 @app.cell(hide_code=True)
@@ -70,6 +69,8 @@ def _(js, mo):
         **History API Server** `{signalk_url}`
 
         Select a provider and paths, set a date range, then press **Fetch data**.
+        Other notebooks: [Data Source Explorer](data_source_explorer.html) to browse or query history with Ibis,
+        [signalk-cli Data Access](history_export.html) to access via the `signalk-cli` library for analysis in the notebook or export to JSON or Feather dataframe.
         """
     )
     return (signalk_url,)
@@ -87,9 +88,14 @@ async def _(json, mo, pyfetch, signalk_url):
     except Exception:
         _provider_options = []
 
+    # SignalK often marks Kip as the default provider, but it often holds little
+    # history, so prefer the first provider that isn't Kip
+    _preferred = [p for p in _provider_options if not p.lower().startswith("kip")]
+    _default_provider = (_preferred or _provider_options or [None])[0]
+
     provider_input = mo.ui.dropdown(
         options=_provider_options,
-        value=_provider_options[0] if _provider_options else None,
+        value=_default_provider,
         label="Provider",
     )
     return (provider_input,)
@@ -100,7 +106,7 @@ async def _(json, mo, provider_input, pyfetch, signalk_url, urlencode):
     _available_paths = []
     if provider_input.value:
         try:
-            _qs = urlencode({"provider": provider_input.value, "duration": "P1D"})
+            _qs = urlencode({"provider": provider_input.value, "duration": "PT24H"})
             _resp = await pyfetch(
                 f"{signalk_url}/signalk/v2/api/history/paths?{_qs}",
                 credentials="include",
@@ -121,6 +127,7 @@ async def _(json, mo, provider_input, pyfetch, signalk_url, urlencode):
             options=_available_paths,
             value=[p for p in _defaults if p in _available_paths],
             label="Paths",
+            full_width=True,
         )
     else:
         paths_input = mo.ui.text_area(
@@ -154,7 +161,7 @@ def _(fetch_btn, from_date, mo, paths_input, provider_input, to_date):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 async def _(
     fetch_btn,
     from_date,
@@ -169,7 +176,8 @@ async def _(
     urlencode,
 ):
     _empty = pl.DataFrame({
-        "timestamp": pl.Series([], dtype=pl.Datetime),
+        "timestamp": pl.Series([], dtype=pl.Datetime("us", "UTC")),
+        "path": pl.Series([], dtype=pl.Utf8),
         "value": pl.Series([], dtype=pl.Float64),
         "method": pl.Series([], dtype=pl.Utf8),
         "context": pl.Series([], dtype=pl.Utf8),
@@ -209,24 +217,25 @@ async def _(
     _data_rows = _raw.get("data", [])
     _long_rows: list[dict] = []
 
+    def _to_float(v):
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v)
+        if isinstance(v, dict):
+            inner = v.get("value")
+            return float(inner) if isinstance(inner, (int, float)) else None
+        return None
+
     for _i, _meta in enumerate(_path_meta):
         _path = _meta.get("path", f"path_{_i}")
         _tname = _path.replace(".", "_")
         _method = _meta.get("method", "")
 
-        def _to_float(v):
-            if v is None:
-                return None
-            if isinstance(v, (int, float)):
-                return float(v)
-            if isinstance(v, dict):
-                inner = v.get("value")
-                return float(inner) if isinstance(inner, (int, float)) else None
-            return None
-
         _path_rows = [
             {
                 "timestamp": _row[0],
+                "path": _path,
                 "value": _to_float(_row[_i + 1]),
                 "method": _method,
                 "context": _context,
@@ -234,11 +243,7 @@ async def _(
             for _row in _data_rows
             if len(_row) > _i + 1
         ]
-        _long_rows.extend(
-            {"timestamp": r["timestamp"], "path": _path, "value": r["value"],
-             "method": r["method"], "context": r["context"]}
-            for r in _path_rows
-        )
+        _long_rows.extend(_path_rows)
 
         tables[_tname] = (
             pl.DataFrame(_path_rows)
@@ -273,7 +278,7 @@ async def _(
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ---

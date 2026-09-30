@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
-import httpx
 import pyarrow as pa
 
+from ._http import get_json
 from .compiler import HistoryRequest
 from .datatypes import path_to_column_name, path_to_ibis_type
 
@@ -28,14 +28,11 @@ class SignalKTransport:
     declared for them in `datatypes.py`, rather than coerced to float64.
     """
 
-    def __init__(self, base_url: str, client: httpx.Client | None = None) -> None:
+    def __init__(self, base_url: str) -> None:
         self._endpoint = f"{base_url.rstrip('/')}/signalk/v2/api/history/values"
-        self._client = client or httpx.Client()
 
     def fetch(self, req: HistoryRequest) -> pa.Table:
-        response = self._client.get(self._endpoint, params=req.to_params())
-        response.raise_for_status()
-        return self._to_arrow(response.json(), req)
+        return self._to_arrow(get_json(self._endpoint, req.to_params()), req)
 
     def _to_arrow(self, payload: dict, req: HistoryRequest) -> pa.Table:
         columns = req.column_names or [
