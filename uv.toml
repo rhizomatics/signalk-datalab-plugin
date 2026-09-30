@@ -1,2 +1,4 @@
 
 exclude-newer = "4 days"
+# signalk-cli is our own package, so new releases can be used straight away
+exclude-newer-package = { signalk-cli = false }

@@ -22,6 +22,9 @@ dev = ["ibis-signalk[duckdb]", "marimo>=0.24.0", "pytest"]
 
 [tool.uv]
 exclude-newer = "5 days"
+# signalk-cli is our own package (npm run lab adds it via this project), so new
+# releases can be used straight away
+exclude-newer-package = { signalk-cli = false }
 environments = ["sys_platform == 'darwin'", "sys_platform == 'linux'"]
 prerelease = "disallow"
 prerelease-package = {}

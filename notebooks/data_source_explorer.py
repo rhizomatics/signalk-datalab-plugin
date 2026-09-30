@@ -45,6 +45,43 @@ with app.setup(hide_code=True):
 
 
 @app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # SignalK Data Source Explorer
+
+    Browse SignalK history with marimo's data browser, or query it with
+    [Ibis](https://ibis-project.org) expressions, with filtering and aggregation
+    done on the server. Ibis loads when the notebook opens, which takes a few
+    seconds the first time.
+
+    Cells run automatically as you change the inputs. If any look stale or empty,
+    press **Run** (▶) at the bottom right of the page.
+
+    **Limitations**
+
+    - `ibis-signalk` is an experimental Ibis backend written for this plugin, not
+    part of Ibis itself.
+    - About 21 MB (Ibis, pyarrow, pandas) downloads the first time.
+    - Whatever the History API can't filter or aggregate is computed in the
+    browser. Histograms and joins need DuckDB, which isn't loaded here; install
+    `duckdb` from the package manager panel if you need them.
+    - pyarrow and pandas in the browser are WebAssembly builds that trail the
+    desktop releases (pyarrow 22 against 25 in September 2026).
+
+    Other experiments to try:
+
+    - [Data Lab](index.html) for picking paths and dates and getting
+    a DataFrame back
+    - [signalk-cli Data Access](history_export.html) for
+    fetching with the `signalk-cli` Python API, charting position, and downloading
+    Feather or CSV.
+    - [SQL with DuckDB](sql_duckdb.html) for querying history with SQL
+    - [Live Stream](live_stream.html) for watching data arrive live.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
 async def _(js, json, mo, pyfetch):
     signalk_url = str(js.location.origin)
     try:
@@ -76,16 +113,9 @@ async def _(js, json, mo, pyfetch):
         value="Last hour",
         label="Duration",
     )
-    use_ibis = mo.ui.switch(label="Load Ibis backend")
     mo.vstack([
         mo.md(f"""
-        # SignalK Data Source Explorer
-        **History API Server** `{signalk_url}` · [Data Lab](index.html) · [signalk-cli Data Access](history_export.html)
-
-        Browse SignalK history with marimo's data browser, or query it with
-        [Ibis](https://ibis-project.org) expressions, with filtering and
-        aggregation done on the server. Loading Ibis takes a few seconds the
-        first time.
+        **History API Server** `{signalk_url}`
 
         Choose the namespaces to browse once Ibis is loaded. Each appears in
         the data browser under its own name, covering the chosen duration
@@ -93,21 +123,19 @@ async def _(js, json, mo, pyfetch):
         need `duckdb`, which you can install from the package manager panel.
         """),
         mo.hstack(
-            [provider_input, duration_input, use_ibis],
+            [provider_input, duration_input],
             justify="start",
             gap="1.5rem",
             align="center",
         ),
     ])
-    return duration_input, provider_input, signalk_url, use_ibis
+    return duration_input, provider_input, signalk_url
 
 
 @app.cell(hide_code=True)
-async def _(json, mo, pyfetch, use_ibis):
+async def _(json, mo, pyfetch):
     import importlib as _importlib
     import sys as _sys
-
-    mo.stop(not use_ibis.value)
 
     if "pyodide" in _sys.modules:
         # In the browser, install the wheel the plugin serves alongside this notebook

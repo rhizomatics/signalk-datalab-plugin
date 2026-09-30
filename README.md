@@ -6,14 +6,14 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/rhizomatics/signalk-einklabel-plugin/blob/main/LICENSE)
 [![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk)
 
-## ALPHA - Use with care
+## BETA - Use with care
 
-Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run entirely in the browser, using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
+Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run [entirely in the browser](https://docs.marimo.io/guides/wasm/), using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
 
-Intention is to have these wired up by default to SignalK History API.
+It comes with several _experiments_, working notebooks that use different ways to pull selected paths out of the SignalK History API and demonstration of how the data can be tabluated, charted or otherwise analyzed.
 
-Packaged with example working notebooks that pull selected paths out of
-the SignalK History API
+> [!NOTE]
+> Whilst this all runs in the browser, the Marimo environment will also run server-side, so this may be an option in future with this plugin, or packaged as a separate plugin. The main up-side of running server-side is not being constrained by using `pyodide` to run Python in the browser, which means latest versions of `polars`,`duckdb` etc are available and fewer gotchas.
 
 ## Running from SignalK
 
@@ -25,19 +25,39 @@ You'll need a _History Provider_ running to capture the SignalK data, such as **
 > [!TIP]
 > If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks. If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer!
 
+> [!WARNING]
+> Libraries with compiled code (polars, DuckDB, pyarrow, numpy, pandas and others) run in the browser only as special WebAssembly builds, which usually trail the desktop releases, sometimes by many months. In September 2026, polars in the browser is 1.33 while desktop is 1.44, and pyarrow is 22 against 25. So the browser can lack newer features, and occasionally has bugs that are long fixed on desktop. Code that works in a desktop notebook may fail in Data Lab, and the reverse. This will ease as more projects publish WebAssembly builds of their own. Pure Python libraries aren't affected.
+
+## Simulating Data
+
+SignalK has several _simulator_ plugins that will generate navigation, environment and similar data. Its also easy to source real live weather data using plugins.
+
 ### Ibis (experimental)
 
-The **Data Source Explorer** notebook, linked from the top of Data Lab, connects [Ibis](https://ibis-project.org) to the History API when you turn on **Load Ibis backend**. You can then query SignalK data with Ibis expressions and browse it in marimo's data browser. It takes a few seconds to load the first time.
+The **Data Source Explorer** notebook, linked from the top of Data Lab, connects [Ibis](https://ibis-project.org) to the History API when it opens. You can then query SignalK data with Ibis expressions and browse it in marimo's data browser. It takes a few seconds to load the first time.
 
 > [!WARNING]
 > Histograms aren't shown in the data browser for SignalK tables by default. Column stats (counts, missing values, min/max, averages) work, but the charts that need histograms are left out. To turn them on, install `duckdb` from marimo's package manager panel; it's a sizeable download. Overall figures cover the last hour unless you filter on `timestamp`.
 
 ### signalk-cli Data Access
 
-The **signalk-cli Data Access** notebook, linked from the top of Data Lab, fetches history with [signalk-cli](https://signalk-cli.rhizomatics.org.uk) and lets you download it as Feather or CSV, in the same format as the `signalk-cli` command line tool. Paths can be glob or regex patterns, e.g. `navigation.*`.
+The **signalk-cli Data Access** notebook, linked from the top of Data Lab, fetches history into a polars DataFrame with the [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python API, and charts how much the boat's position moved in each 15 minutes. You can also download the data as Feather or CSV, in the same format as the `signalk-cli` command line tool. Paths can be glob or regex patterns, e.g. `navigation.*`.
 
 > [!NOTE]
-> It installs `signalk-cli` and `pyarrow` when it opens, a download of about 10 MB, which takes a while the first time.
+> It installs `signalk-cli` when it opens, which takes a few seconds the first time.
+
+### SQL with DuckDB
+
+The **SQL with DuckDB** notebook fetches history into a `signalk_history` table and queries it with SQL cells running [DuckDB](https://duckdb.org) in the browser. Worked examples cover time bucketing, `PIVOT`, window functions for distance run, and `ASOF JOIN` to line up sensors that report at different rates. It can also query an uploaded CSV or Parquet file.
+
+> [!NOTE]
+> DuckDB and the packages marimo loads alongside it are about 28 MB, so the first visit takes a while. The other notebooks don't load DuckDB.
+
+### Live Stream
+
+The **Live Stream** notebook subscribes to the SignalK delta stream and shows data as it arrives: a chart per path, redrawn every few seconds, and a table of the latest values. It uses the browser's own WebSocket, since signalk-cli's streaming client waits for each message in a way that would block the rest of the notebook in the browser. signalk-cli still builds the subscription and reads the messages. Only data received while the page is open is shown.
+
+Each notebook's opening cell lists the limitations of its approach.
 
 ### Using an AI agent (advanced)
 
@@ -95,7 +115,7 @@ See [packages/ibis-signalk/README.md](packages/ibis-signalk/README.md) for how q
 
 Every marimo notebook in `notebooks/` is included in the WASM build: `signalk.py` becomes the Data Lab entry page (`index.html`), and each other notebook becomes `<name>.html` alongside it, sharing the same assets. Link between them with relative links, e.g. `[Data Source Explorer](data_source_explorer.html)`.
 
-`history_export.py` installs `signalk-cli` in the browser with `micropip.install("signalk-cli", deps=False)`, plus `click` and `niquests>=2.36.0` (the first with browser support). Its package metadata requires `zeroconf` for mDNS discovery, which has no browser build and isn't needed there; that requirement is intentionally left in place for desktop users. `npm run lab` includes `signalk-cli[feather]`.
+The signalk-cli notebooks install `signalk-cli>=3.0.0` in the browser with a plain `micropip.install`; its metadata leaves out `zeroconf` (mDNS discovery) under Pyodide. signalk-cli is exempt from the `exclude-newer` release cooldown, in both `uv.toml` and `packages/ibis-signalk/pyproject.toml` (which `npm run lab` runs under), so new releases of it can be used straight away.
 
 To preview the WASM build in a browser, as SignalK would serve it, use
 

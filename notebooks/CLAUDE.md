@@ -96,6 +96,9 @@ This notebook is published as a marimo WASM app and runs in Pyodide inside the b
 
 - Only use packages that are pure Python or ship with Pyodide (polars, altair, numpy, pandas are fine). Avoid packages with native extensions that Pyodide doesn't provide, and anything that needs subprocesses, threads or local files.
 - Prefer polars over pandas where there's a choice
+- Compiled packages (polars, duckdb, pyarrow, numpy, pandas...) come from Pyodide's own builds, which trail PyPI, sometimes by many months: polars is 1.33.1 and pyarrow 22 under Pyodide 314. Don't use features newer than those versions, and if something works on desktop but not in the browser, suspect a version gap or a WebAssembly-only bug first.
+- Known bug in Pyodide's polars 1.33.1: a string column that polars took in from Arrow (`pl.from_arrow`, `pl.DataFrame(arrow_table)`, or a DuckDB/`mo.sql` result) panics with "capacity overflow" when it's handed on as Arrow, which includes querying it with DuckDB or `mo.sql`. Rebuild the strings first with `df.with_columns(pl.col(pl.String) + "")`. Fixed in polars 1.38 (pola-rs/polars#26328), so drop the workaround once Pyodide ships 1.38 or later.
+- Showing timezone-aware timestamps needs the `tzdata` package; keep the guarded `import tzdata` in the setup cell, which makes Pyodide load it.
 - Make HTTP requests with the `pyfetch` defined in the imports cell, never `requests` or `urllib` directly. It is Pyodide's `pyfetch` in the browser and falls back to a `urllib` shim when run locally.
 - Get the server address from `js.location.origin` (exposed as `signalk_url`). Locally it comes from the `SIGNALK_URL` environment variable, defaulting to `http://localhost:3000`.
 - Pass `credentials="include"` on requests to the SignalK API so the user's session cookie is sent.

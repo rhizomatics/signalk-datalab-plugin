@@ -1,9 +1,10 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.3.1",
-  "description": "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser. ALPHA, use with caution. See also signalk-cli on PyPi.",
+  "version": "0.4.0",
+  "description": "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser. Experiment with dataframes, DuckDB, signalk-cli, polars, Ibis Framework in pre-packaged notebooks. BETA, use with caution. ",
   "keywords": [
     "data",
+    "dataframe",
     "marimo",
     "marine-data",
     "notebooks",
@@ -42,7 +43,7 @@
     "test": "node scripts/run-tests.js",
     "coverage": "node scripts/run-tests.js --coverage",
     "agent": "uv run --with-requirements requirements.txt --with \"marimo[mcp]\" marimo edit notebooks/signalk.py --watch --mcp --no-token --port 2718",
-    "lab": "uv run --project packages/ibis-signalk --with-requirements requirements.txt --with \"signalk-cli[feather]\" marimo edit . --watch",
+    "lab": "uv run --project packages/ibis-signalk --with-requirements requirements.txt --with \"signalk-cli>=3.0.0\" marimo edit . --watch",
     "build:wheel": "node scripts/build-wheel.js",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",

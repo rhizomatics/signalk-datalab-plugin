@@ -1,11 +1,51 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
-# v0.3.1 - Sept 2026
+# v0.4.0 - Sept 2026
+
+## ✨ Enhancements
+
+## New Notebooks
+
+- New SQL based experiment notebook using [DuckDb](https://duckdb.org)
+- New **Live Stream** experiment notebook, to see charts update realtime with wind data (or whatever else you want)
+  - Streams over the browser's WebSocket, with `signalk-cli` for subscriptions and parsing
+  - Holds each value on the chart until the next reading, since SignalK only sends values when they change
+
+## All Notebooks
+
+- Each notebook opens with its purpose, a reminder to run cells, links to the other notebooks, and a **Limitations** section
+
+## signalk-cli Notebook
+
+- Use the new Python API introduced in 3.0.0 of `signalk_cli`
+  - Removes the need for direct interaction with SignalK
+  - Adds ability to return dataframe in-memory for zero-copy sharing with notebooks
+- Installs `signalk-cli` straight from PyPI in the browser
+- New position spread chart: standard deviation of latitude and longitude, in metres, per 15 minutes
+- Feather export no longer needs `pyarrow`, saving about 10 MB of download
+
+## Data Source Explorer Notebook
+
+- Ibis loads when the notebook opens, replacing the **Load Ibis backend** switch
+
+## 📚 Documentation
+
+- README warning that compiled libraries (polars, pyarrow, DuckDB and others) trail their desktop releases in the browser
+- Notebook AI assistant notes (`notebooks/CLAUDE.md`) on the browser's library versions and known bugs
+
+## 📝 Other changes
+
+### Development
+
+- `npm run preview` forwards WebSocket connections, needed by the Live Stream notebook
+- `npm run lab` uses `signalk-cli` 3.0 from PyPI, and `signalk-cli` is exempt from the `uv` release cooldown
 
 ## 🐛 Bug fixes
 
 - Fix for nullable float64 values, for example querying tide heights
+- Fix for tables with UTC timestamps failing to display in the browser, due to time zone info not being available
+- Workaround for a crash in the browser's polars (1.33) when string columns from Arrow are passed on, for example to DuckDB. Fixed in polars 1.38, which Pyodide hasn't picked up yet
 
 # v0.3.0 - Sept 2026
 
