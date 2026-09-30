@@ -2,11 +2,11 @@
 
 ## Updating the Python side
 
-The marimo version is pinned in [requirements.txt](requirements.txt). The WASM build (`npm run build:wasm`), `npm run agent` and the Claude `marimo check` hook all use it, so the version shipped doesn't depend on what `uv` has cached. Update it before a release build:
+[requirements.txt](requirements.txt) sets a minimum marimo version (`marimo>=…`), not a fixed one. The WASM build (`npm run build:wasm`), `npm run agent`, `npm run lab`, the pre-commit `marimo check` hook and the Claude `marimo check` hook all use it, so each picks up the newest marimo release `uv` can resolve, subject to the release cooldowns below. A release build can therefore ship a newer marimo than the last one. Before a release build:
 
-1. Check the [marimo releases](https://github.com/marimo-team/marimo/releases) for the version you want and any breaking changes.
-2. Set it in `requirements.txt`, e.g. `marimo==0.25.0`.
-3. Check the notebooks still pass with the new version:
+1. Check the [marimo releases](https://github.com/marimo-team/marimo/releases) since the version in the last build for any breaking changes.
+2. If the notebooks need a newer marimo feature, raise the minimum in `requirements.txt`, e.g. `marimo>=0.25.0`.
+3. Check the notebooks still pass with the version uv now resolves:
 
    ```bash
    uv run --with-requirements requirements.txt marimo check notebooks/*.py
