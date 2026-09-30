@@ -38,26 +38,21 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
    npm version <VERSION> --no-git-tag-version
    ```
 
-2. Run the checks:
+2. Commit and push, then wait for the SignalK Plugin CI workflow to pass on GitHub. The pre-commit hooks lint and format the changed files, run the tests when plugin code changes, and run `marimo check` on changed notebooks. To run them all over every file, for example after upgrading marimo:
 
    ```bash
-   npm test
-   npm run fmt:check
-   npm run lint
-   uv run --with-requirements requirements.txt marimo check notebooks/*.py
+   pre-commit run --all-files
    ```
 
-3. Commit and push, then wait for the SignalK Plugin CI workflow to pass on GitHub.
-
-4. Clear old notebook pages, so a renamed or removed notebook doesn't ship with a stale gallery card (the build only clears `public/assets/`), then check what the package will contain, including `assets/logo.svg` and `assets/screenshots/` for the App Store:
+3. Rebuild from scratch, then check what the package will contain, including `assets/logo.svg` and `assets/screenshots/` for the App Store. `npm run clean` removes everything the build generates (`dist/`, `public/`, `coverage/`):
 
    ```bash
-   rm -f public/*.html
+   npm run clean
    npm run build
    npm pack --dry-run
    ```
 
-5. Tag the release. Version tags should never move, so only `latest` is forced:
+4. Tag the release. Version tags should never move, so only `latest` is forced:
 
    ```bash
    git tag v<VERSION>
@@ -66,20 +61,20 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
    git push -f origin latest
    ```
 
-6. Publish to npm:
+5. Publish to npm:
 
    ```bash
    npm login
    npm publish --tag latest --access public
    ```
 
-7. Create the GitHub release, with the version's CHANGELOG section as its notes:
+6. Create the GitHub release, with the version's CHANGELOG section as its notes:
 
    ```bash
    gh release create v<VERSION> --title v<VERSION> --notes-file <notes.md>
    ```
 
-8. Install it from the SignalK App Store on a test server, and check that:
+7. Install it from the SignalK App Store on a test server, and check that:
    - `/@rhizomatics/signalk-datalab-plugin/` opens the gallery (SignalK serves `public/` itself, as the package has the `signalk-webapp` keyword)
    - a notebook opens and loads data
    - the App Store shows the icon and screenshot

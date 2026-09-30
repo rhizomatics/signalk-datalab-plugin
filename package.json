@@ -37,6 +37,7 @@
     "build:icons": "node scripts/build-icons.js",
     "build:wasm": "node scripts/build-wasm.js && npm run build:wheel && npm run build:icons && cp notebooks/CLAUDE.md public/",
     "build": "npm run build:ts && npm run build:wasm",
+    "clean": "node scripts/clean.js",
     "watch": "tsc --watch",
     "prepack": "npm run build",
     "preview": "npm run build:wasm && node scripts/preview.js",

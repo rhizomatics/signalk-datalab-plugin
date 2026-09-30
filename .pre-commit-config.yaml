@@ -43,3 +43,17 @@ repos:
         # supported-extensions list) - oxfmt then errors ("Expected at least one target file")
         # instead of no-op'ing, same class of issue the oxlint hook already guards against below.
         args: ["--no-error-on-unmatched-pattern"]
+  - repo: local
+    hooks:
+      # Only one test file so far, so run the lot whenever the plugin code changes
+      - id: npm-test
+        name: npm test
+        entry: npm test
+        language: system
+        pass_filenames: false
+        files: ^(src/|test/|package\.json$|tsconfig\.json$)
+      - id: marimo-check
+        name: marimo check
+        entry: uv run --with-requirements requirements.txt marimo check
+        language: system
+        files: ^notebooks/.*\.py$

@@ -39,7 +39,14 @@ const notebooks = fs
   .filter((f) => f.endsWith(".py"))
   .filter((f) => /^app = marimo\.App/m.test(fs.readFileSync(path.join(notebooksDir, f), "utf8")));
 
+// Clear the previous build's assets and notebook pages, so a renamed or
+// removed notebook doesn't leave a stale page behind
 fs.rmSync(path.join(publicDir, "assets"), { recursive: true, force: true });
+if (fs.existsSync(publicDir)) {
+  for (const file of fs.readdirSync(publicDir).filter((f) => f.endsWith(".html"))) {
+    fs.rmSync(path.join(publicDir, file));
+  }
+}
 exportNotebook(MAIN, publicDir);
 fs.renameSync(path.join(publicDir, "index.html"), path.join(publicDir, MAIN_PAGE));
 
