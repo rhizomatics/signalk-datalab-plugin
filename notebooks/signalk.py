@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.23.8"
-app = marimo.App(width="full", app_title="SignalK Data Lab")
+app = marimo.App(width="full", app_title="Analyze with Polars Dataframes")
 
 
 with app.setup(hide_code=True):
@@ -70,7 +70,7 @@ with app.setup(hide_code=True):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # SignalK Data Lab
+    # Analyze with Polars Dataframes
 
     Load SignalK history into [polars](https://pola.rs) DataFrames for your own
     analysis. Choose a provider, paths and a date range, press **Fetch data**, then
@@ -84,22 +84,16 @@ def _(mo):
     - The whole date range is fetched at full resolution into browser memory, so
     long ranges with many paths are slow and can run out of memory.
     - Only numbers are kept: positions and other objects come through as empty
-    values. [signalk-cli Data Access](history_export.html) keeps positions.
+    values. [Analyze and Export with signalk-cli](history_export.html) keeps positions.
     - The path list offers paths with data in the last 24 hours.
     - Polars in the browser is a WebAssembly build from a one-person project
     ([xlwings/polars-pyodide](https://github.com/xlwings/polars-pyodide)), not the
     polars team, and trails the desktop release (1.33 against 1.44 in September
     2026), so newer features and some bug fixes are missing. Other compiled
-    libraries, such as pyarrow, numpy and pandas, lag behind in the same way.
+    libraries, such as pyarrow, numpy and pandas, lag behind in the same way. This notebook works
+    around one such bug, with string columns.
 
-    Other experiments to try:
-
-    - [Data Source Explorer](data_source_explorer.html) for browsing
-    history in marimo's data browser or querying it with Ibis
-    - [signalk-cli Data Access](history_export.html) for fetching with the
-    `signalk-cli` Python API, charting position, and downloading Feather or CSV.
-    - [SQL with DuckDB](sql_duckdb.html) for querying history with SQL
-    - [Live Stream](live_stream.html) for watching data arrive live.
+    Find the other notebooks in the [gallery](index.html).
     """)
     return
 

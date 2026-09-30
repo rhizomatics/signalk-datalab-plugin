@@ -1,6 +1,14 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.5.0 - Sept 2026
+
+## ✨ Enhancements
+
+- New home page gallery, with a choice of the notebook experiments
+- New documentary notebook to explain how to add your own notebooks to it (quite technical at present).
+- Renamed the experiment notebooks to make clearer what they do
+
 # v0.4.0 - Sept 2026
 
 ## ✨ Enhancements

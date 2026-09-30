@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.23.5"
-app = marimo.App(width="full", app_title="Marimo Data Explorer Integration Using Ibis Framework")
+app = marimo.App(width="full", app_title="SignalK Paths in Data Explorer with Ibis")
 
 with app.setup(hide_code=True):
     import marimo as mo
@@ -47,7 +47,7 @@ with app.setup(hide_code=True):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # SignalK Data Source Explorer
+    # SignalK Paths in Data Explorer with Ibis
 
     Browse SignalK history with marimo's data browser, or query it with
     [Ibis](https://ibis-project.org) expressions, with filtering and aggregation
@@ -68,15 +68,7 @@ def _(mo):
     - pyarrow and pandas in the browser are WebAssembly builds that trail the
     desktop releases (pyarrow 22 against 25 in September 2026).
 
-    Other experiments to try:
-
-    - [Data Lab](index.html) for picking paths and dates and getting
-    a DataFrame back
-    - [signalk-cli Data Access](history_export.html) for
-    fetching with the `signalk-cli` Python API, charting position, and downloading
-    Feather or CSV.
-    - [SQL with DuckDB](sql_duckdb.html) for querying history with SQL
-    - [Live Stream](live_stream.html) for watching data arrive live.
+    Find the other notebooks in the [gallery](index.html).
     """)
     return
 

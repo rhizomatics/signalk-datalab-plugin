@@ -1,16 +1,17 @@
 // Exports every marimo notebook in notebooks/ to the WASM bundle in public/.
-// signalk.py becomes index.html (the Data Lab entry point); each other notebook
-// becomes <name>.html next to it. All exports of the same marimo version share
+// signalk.py becomes datalab.html (the main Data Lab interface); each other
+// notebook becomes <name>.html next to it, and index.html is a gallery of them
+// all (see build-gallery.js). All exports of the same marimo version share
 // identical, content-hashed assets, so only one copy of assets/ is kept.
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
+const { buildGallery, MAIN, MAIN_PAGE } = require("./build-gallery");
 
 const root = path.join(__dirname, "..");
 const publicDir = path.join(root, "public");
 const notebooksDir = path.join(root, "notebooks");
-const MAIN = "signalk.py";
 
 function exportNotebook(notebook, outDir) {
   execFileSync(
@@ -40,6 +41,7 @@ const notebooks = fs
 
 fs.rmSync(path.join(publicDir, "assets"), { recursive: true, force: true });
 exportNotebook(MAIN, publicDir);
+fs.renameSync(path.join(publicDir, "index.html"), path.join(publicDir, MAIN_PAGE));
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "datalab-wasm-"));
 try {
@@ -56,3 +58,5 @@ try {
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
+
+buildGallery(notebooks);

@@ -16,7 +16,7 @@ The marimo version is pinned in [requirements.txt](requirements.txt). The WASM b
 
    ```bash
    npm run build:wasm
-   grep -o '"version": *"[0-9.]*"' public/index.html | head -1
+   grep -o '"version": *"[0-9.]*"' public/datalab.html | head -1
    ```
 
 5. Try it against a real server with `SIGNALK_URL=http://my-boat.local:3000 npm run preview`.

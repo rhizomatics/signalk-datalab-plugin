@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.25.0"
-app = marimo.App(width="full", app_title="signalk-cli Based Data Access")
+app = marimo.App(width="full", app_title="Analyze and Export with signalk-cli")
 
 with app.setup(hide_code=True):
     import marimo as mo
@@ -19,7 +19,7 @@ with app.setup(hide_code=True):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    # signalk-cli Data Access
+    # Analyze and Export with signalk-cli
 
     Fetch SignalK history into a [polars](https://pola.rs) DataFrame with the
     [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python API, then analyse
@@ -36,23 +36,10 @@ def _():
     developer, whose WebAssembly support is what makes this work.
     - The whole time range is fetched into browser memory, so long ranges with
     many paths are slow.
-    - Polars in the browser is a WebAssembly build from a one-person project
-    ([xlwings/polars-pyodide](https://github.com/xlwings/polars-pyodide)), not the
-    polars team, and trails the desktop release (1.33 against 1.44 in September
-    2026), so newer features and some bug fixes are missing. Other compiled
-    libraries, such as pyarrow, numpy and pandas, lag behind in the same way. This notebook works
-    around one such bug, with string columns.
     - signalk-cli's streaming client doesn't suit the browser; see
-    [Live Stream](live_stream.html) for live data.
+    [Live Stream With signalk-cli](live_stream.html) for live data.
 
-    Other experiments to try:
-
-    - [Data Lab](index.html) for picking paths and dates and getting
-    a DataFrame back
-    - [Data Source Explorer](data_source_explorer.html) for
-    browsing history in marimo's data browser or querying it with Ibis
-    - [SQL with DuckDB](sql_duckdb.html) for querying history with SQL
-    - [Live Stream](live_stream.html) for watching data arrive live.
+    Find the other notebooks in the [gallery](index.html).
     """)
     return
 

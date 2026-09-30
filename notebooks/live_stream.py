@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.25.0"
-app = marimo.App(width="full", app_title="Live Stream")
+app = marimo.App(width="full", app_title="Live Stream With signalk-cli")
 
 with app.setup(hide_code=True):
     import marimo as mo
@@ -133,7 +133,7 @@ with app.setup(hide_code=True):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    # Live Stream
+    # Live Stream With signalk-cli
 
     Watch your boat's data arrive live from SignalK, as a chart per path and a
     table of the latest values. It subscribes to the SignalK delta stream over a
@@ -159,15 +159,7 @@ def _():
     subscription and reads the messages.
     - Only your own vessel (`vessels.self`) is subscribed.
 
-    Other experiments to try:
-
-    - [Data Lab](index.html) for picking paths and dates and getting
-    a DataFrame back
-    - [Data Source Explorer](data_source_explorer.html) for browsing
-    history in marimo's data browser or querying it with Ibis
-    - [signalk-cli Data Access](history_export.html) for fetching with the
-    `signalk-cli` Python API, charting position, and downloading Feather or CSV
-    - [SQL with DuckDB](sql_duckdb.html) for querying history with SQL.
+    Find the other notebooks in the [gallery](index.html).
     """)
     return
 

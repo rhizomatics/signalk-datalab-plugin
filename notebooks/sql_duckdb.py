@@ -40,24 +40,9 @@ def _():
     (1.5.1 against 1.5.6 in September 2026) and runs on a single thread. DuckDB
     extensions, such as spatial, haven't been tried here and may not load.
     - The fetched history is held in browser memory, so very long ranges are slow.
-    - In the browser, signalk-cli's requests go through niquests and
-    urllib3-future, forks of requests and urllib3 maintained mainly by one
-    developer, whose WebAssembly support is what makes this work.
-    - Polars in the browser is a WebAssembly build from a one-person project
-    ([xlwings/polars-pyodide](https://github.com/xlwings/polars-pyodide)), not the
-    polars team, and trails the desktop release (1.33 against 1.44 in September
-    2026), so newer features and some bug fixes are missing. Other compiled
-    libraries, such as pyarrow, numpy and pandas, lag behind in the same way.
 
-    Other experiments to try:
 
-    - [Data Lab](index.html) for picking paths and dates and getting
-    a DataFrame back
-    - [Data Source Explorer](data_source_explorer.html) for browsing
-    history in marimo's data browser or querying it with Ibis
-    - [signalk-cli Data Access](history_export.html) for fetching with the
-    `signalk-cli` Python API, charting position, and downloading Feather or CSV
-    - [Live Stream](live_stream.html) for watching data arrive live.
+    Find the other notebooks in the [gallery](index.html).
     """)
     return
 
@@ -333,7 +318,7 @@ def _():
     ## Querying a file
 
     DuckDB can query CSV and Parquet files directly, for example a CSV downloaded
-    from [signalk-cli Data Access](history_export.html) or exported by the
+    from [Analyze and Export with signalk-cli](history_export.html) or exported by the
     `signalk-cli` command line tool.
     """)
     return
