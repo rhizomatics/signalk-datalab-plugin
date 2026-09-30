@@ -8,11 +8,7 @@ const root = path.join(__dirname, "..");
 const outDir = path.join(root, "public", "wheels");
 
 fs.rmSync(outDir, { recursive: true, force: true });
-execFileSync(
-  "uv",
-  ["build", "--wheel", "--out-dir", outDir, path.join(root, "packages", "ibis-signalk")],
-  { stdio: "inherit" },
-);
+execFileSync("uv", ["build", "--wheel", "--out-dir", outDir, path.join(root, "packages", "ibis-signalk")], { stdio: "inherit" });
 
 const wheels = fs.readdirSync(outDir).filter((f) => f.endsWith(".whl"));
 fs.writeFileSync(path.join(outDir, "index.json"), JSON.stringify({ "ibis-signalk": wheels[0] }));

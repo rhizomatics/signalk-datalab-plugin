@@ -4,13 +4,7 @@ version = "0.1.1"
 description = "Ibis backend for the SignalK History API — code-less data discovery over marine sensor data"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-  "ibis-framework>=12.0.0",
-  "pyarrow>=17.0.0",
-  "pyarrow-hotfix>=0.6",
-  "pandas>=2.0.0",
-  "altair>=6.2.1",
-]
+dependencies = ["ibis-framework>=12.0.0", "pyarrow>=17.0.0", "pyarrow-hotfix>=0.6", "pandas>=2.0.0", "altair>=6.2.1"]
 
 [project.optional-dependencies]
 # Runs queries the History API can't answer (joins, histograms) locally

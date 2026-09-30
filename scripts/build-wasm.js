@@ -46,10 +46,7 @@ try {
   for (const notebook of notebooks.filter((f) => f !== MAIN)) {
     const out = path.join(tmp, path.parse(notebook).name);
     exportNotebook(notebook, out);
-    fs.copyFileSync(
-      path.join(out, "index.html"),
-      path.join(publicDir, `${path.parse(notebook).name}.html`),
-    );
+    fs.copyFileSync(path.join(out, "index.html"), path.join(publicDir, `${path.parse(notebook).name}.html`));
     // Assets should match the main export; copy any that don't, just in case
     fs.cpSync(path.join(out, "assets"), path.join(publicDir, "assets"), {
       recursive: true,
