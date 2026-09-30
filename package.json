@@ -1,22 +1,35 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
   "version": "0.3.0",
-  "signalk": {
-    "displayName": "Data Lab",
-    "appIcon": "logo.svg"
-  },
   "description": "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser. ALPHA, use with caution. See also signalk-cli on PyPi.",
-  "main": "dist/index.js",
   "keywords": [
-    "signalk-node-server-plugin",
-    "signalk-webapp",
+    "data",
+    "marimo",
+    "marine-data",
+    "notebooks",
     "signalk-category-data",
     "signalk-category-database",
-    "marimo",
-    "data",
-    "notebooks",
-    "marine-data"
+    "signalk-node-server-plugin",
+    "signalk-webapp"
   ],
+  "homepage": "https://github.com/rhizomatics/signalk-datalab-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/rhizomatics/signalk-datalab-plugin/issues"
+  },
+  "license": "Apache-2.0",
+  "author": "jey burrows",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhizomatics/signalk-datalab-plugin.git"
+  },
+  "files": [
+    "dist/",
+    "public/",
+    "notebooks/"
+  ],
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build:ts": "tsc",
     "build:icons": "node scripts/build-icons.js",
@@ -28,33 +41,26 @@
     "preview:serve": "node scripts/preview.js",
     "agent": "uv run --with-requirements requirements.txt --with \"marimo[mcp]\" marimo edit notebooks/signalk.py --watch --mcp --no-token --port 2718",
     "lab": "uv run --project packages/ibis-signalk --with-requirements requirements.txt --with \"signalk-cli[feather]\" marimo edit . --watch",
-    "build:wheel": "node scripts/build-wheel.js"
+    "build:wheel": "node scripts/build-wheel.js",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint"
   },
-  "files": [
-    "dist/",
-    "public/",
-    "notebooks/"
-  ],
   "dependencies": {
     "express": ">=4"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "@signalk/server-api": "^2.33.0",
+    "@signalk/server-api": "^2.31.0",
     "@types/express": "^4.17.21",
     "@types/node": "^26.6.2",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^5.9.3"
   },
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhizomatics/signalk-datalab-plugin.git"
-  },
-  "author": "jey burrows",
-  "type": "commonjs",
-  "types": "./dist/index.d.ts",
-  "bugs": {
-    "url": "https://github.com/rhizomatics/signalk-datalab-plugin/issues"
-  },
-  "homepage": "https://github.com/rhizomatics/signalk-datalab-plugin#readme"
+  "signalk": {
+    "displayName": "Data Lab",
+    "appIcon": "logo.svg"
+  }
 }

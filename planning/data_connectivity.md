@@ -14,10 +14,12 @@ SignalK History API at http://10.36.10.20/signalk/v2/api/history
 ## Discovery
 
 **Aggregation is per-path in the `paths` param:**
+
 ```
 paths=navigation.speedOverGround:sma:5,navigation.speedThroughWater:max
 ```
-So `method` and `parameter` are encoded *into the path string*, not separate params. The compiler needs to encode Ibis aggregation ops into that syntax.
+
+So `method` and `parameter` are encoded _into the path string_, not separate params. The compiler needs to encode Ibis aggregation ops into that syntax.
 
 **`resolution` replaces `interval`** — time window length in seconds or `1s`/`1m`/`1h`/`1d`.
 
@@ -36,9 +38,10 @@ And the path-level aggregation encoding means the compiler needs to handle it at
 
 ---
 
-##  Module Sketches
+## Module Sketches
 
 ### `datatypes.py`
+
 ```python
 from __future__ import annotations
 import ibis.expr.datatypes as dt
@@ -77,6 +80,7 @@ def column_name_to_path(col: str) -> str:
 ---
 
 ### `compiler.py`
+
 ```python
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -196,6 +200,7 @@ def _truncate_to_resolution(unit: str) -> str:
 ---
 
 ### `transport.py`
+
 ```python
 from __future__ import annotations
 import pyarrow as pa
@@ -274,6 +279,7 @@ class SignalKTransport:
 ---
 
 ### `catalog.py`
+
 ```python
 from __future__ import annotations
 import ibis
@@ -312,6 +318,7 @@ class SignalKCatalog:
 ---
 
 ### `backend.py`
+
 ```python
 from __future__ import annotations
 import pyarrow as pa

@@ -22,7 +22,7 @@ The marimo version is pinned in [requirements.txt](requirements.txt). The WASM b
 5. Try it against a real server with `SIGNALK_URL=http://my-boat.local:3000 npm run preview`.
 6. Note the new version in [CHANGELOG.md](CHANGELOG.md).
 
-If `uv` reports *No solution found* for a version that is on PyPI, check for an `exclude-newer` setting in `~/.config/uv/uv.toml`. That setting holds back recently published packages, so a new marimo release can't be used until it is older than the cutoff.
+If `uv` reports _No solution found_ for a version that is on PyPI, check for an `exclude-newer` setting in `~/.config/uv/uv.toml`. That setting holds back recently published packages, so a new marimo release can't be used until it is older than the cutoff.
 
 The `packages/ibis-signalk` package has its own marimo requirement in its `pyproject.toml` and `uv.lock`. It isn't part of the plugin build, but can be updated with `uv lock --upgrade-package marimo` in that directory.
 

@@ -2,7 +2,7 @@
 
 An experimental data notebook environment for SignalK, using [Marimo](https://marimo.io) notebooks for exploration and analysis of SignalK History API data.
 
-While Marimo could run on the SignalK server, or on cloud, this implementation chooses to use them in WASM mode (using `pyoxide`), where they run *entirely* within the web browser, so that the only strain on the boat's SignalK server is supplying the static resources when the web app is loading, and running the History API queries.
+While Marimo could run on the SignalK server, or on cloud, this implementation chooses to use them in WASM mode (using `pyoxide`), where they run _entirely_ within the web browser, so that the only strain on the boat's SignalK server is supplying the static resources when the web app is loading, and running the History API queries.
 
 It's also possible to wire these notebooks up directly to your actual back-end Parquet, QuestDB, InfluxDB etc however this implementation chooses to use the general SignalK [History API](https://demo.signalk.org/documentation/Developing/REST_APIs/History_API.html).
 
@@ -26,7 +26,6 @@ This notebook is able to bring SignalK data into the visual data browser environ
 
 The `signalk-cli` package can also be used as a library, and has some useful features like metrics handling and path wildcarding that make more practical use of SignalK data, and has direct dataframe output.
 
-
 ## ibis-signalk
 
 An [Ibis Framework](https://ibis-project.org) backend for the [SignalK](https://signalk.org/) History API. Lets Marimo's Data Sources panel (and plain Ibis code) browse, query and extract SignalK history data with aggregation and resolution pushed down to the server — no local storage, no DuckDB import step.
@@ -43,7 +42,6 @@ SIGNALK_URL=http://<boat-host>:<port> uv run marimo edit notebooks/dev.py
 ```
 
 `SIGNALK_URL` defaults to `http://localhost:3000`, the same as the main Data Lab notebook. The history provider defaults to the first one that isn't Kip; pass `provider=` to `do_connect()` to choose another.
-
 
 ## How queries run
 

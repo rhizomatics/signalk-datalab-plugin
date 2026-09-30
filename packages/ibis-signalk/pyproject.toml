@@ -5,11 +5,11 @@ description = "Ibis backend for the SignalK History API — code-less data disco
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "ibis-framework>=12.0.0",
-    "pyarrow>=17.0.0",
-    "pyarrow-hotfix>=0.6",
-    "pandas>=2.0.0",
-    "altair>=6.2.1",
+  "ibis-framework>=12.0.0",
+  "pyarrow>=17.0.0",
+  "pyarrow-hotfix>=0.6",
+  "pandas>=2.0.0",
+  "altair>=6.2.1",
 ]
 
 [project.optional-dependencies]
@@ -24,17 +24,10 @@ build-backend = "uv_build"
 packages = ["src/ibis_signalk"]
 
 [dependency-groups]
-dev = [
-    "ibis-signalk[duckdb]",
-    "marimo>=0.24.0",
-    "pytest",
-]
+dev = ["ibis-signalk[duckdb]", "marimo>=0.24.0", "pytest"]
 
 [tool.uv]
 exclude-newer = "5 days"
-environments = [
-    "sys_platform == 'darwin'",
-    "sys_platform == 'linux'",
-]
+environments = ["sys_platform == 'darwin'", "sys_platform == 'linux'"]
 prerelease = "disallow"
 prerelease-package = {}

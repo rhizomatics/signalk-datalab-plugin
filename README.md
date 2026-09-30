@@ -1,5 +1,11 @@
 # SignalK Data Lab
 
+[![npm version](https://img.shields.io/npm/v/@rhizomatics/signalk-datalab-plugin.svg)](https://www.npmjs.com/package/@rhizomatics/signalk-datalab-plugin)
+[![npm downloads](https://img.shields.io/npm/dm/@rhizomatics/signalk-datalab-plugin.svg)](https://www.npmjs.com/package/@rhizomatics/signalk-datalab-plugin)
+[![code style: oxfmt](https://img.shields.io/badge/code_style-oxfmt-blue.svg)](https://github.com)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/rhizomatics/signalk-einklabel-plugin/blob/main/LICENSE)
+[![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk)
+
 ## ALPHA - Use with care
 
 Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run entirely in the browser, using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
@@ -12,9 +18,9 @@ the SignalK History API
 ## Running from SignalK
 
 - Install from the SignalK **App Store**
-- Launch the *Data Lab* from the **Webapps** link on SignalK main menu
+- Launch the _Data Lab_ from the **Webapps** link on SignalK main menu
 
-You'll need a *History Provider* running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
+You'll need a _History Provider_ running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
 
 > [!TIP]
 > If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks. If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer!
@@ -29,7 +35,6 @@ The **Data Source Explorer** notebook, linked from the top of Data Lab, connects
 ### signalk-cli Data Access
 
 The **signalk-cli Data Access** notebook, linked from the top of Data Lab, fetches history with [signalk-cli](https://signalk-cli.rhizomatics.org.uk) and lets you download it as Feather or CSV, in the same format as the `signalk-cli` command line tool. Paths can be glob or regex patterns, e.g. `navigation.*`.
-
 
 > [!NOTE]
 > It installs `signalk-cli` and `pyarrow` when it opens, a download of about 10 MB, which takes a while the first time.
@@ -52,12 +57,12 @@ Development environment requirements.
 
 ### Linux Packages
 
-* node
-* librsvg2-bin
+- node
+- librsvg2-bin
 
 #### Also recommended
 
-* [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python CLI for exploring and extracting streaming and history daya
+- [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python CLI for exploring and extracting streaming and history daya
 
 ### Local Execution
 
@@ -117,7 +122,7 @@ The notebooks are plain Python files, so any coding agent can edit them. The rep
 
 2. In another terminal in the repo, start Claude Code with `claude`. The MCP server is registered in [.mcp.json](.mcp.json), so the first time you'll be asked to approve the `marimo` server. Run `/mcp` to check it's connected.
 
-3. Ask for changes in plain language, e.g. *"add a chart of wind speed against boat speed"*. Claude edits `notebooks/signalk.py`, the browser tab updates, and Claude can read back cell outputs and errors from the running notebook.
+3. Ask for changes in plain language, e.g. _"add a chart of wind speed against boat speed"_. Claude edits `notebooks/signalk.py`, the browser tab updates, and Claude can read back cell outputs and errors from the running notebook.
 
 Project settings in [.claude/](.claude/) run `marimo check` after every notebook edit and feed any problems back to Claude. [notebooks/CLAUDE.md](notebooks/CLAUDE.md) covers marimo's rules and what works in the browser (WASM) build.
 
@@ -132,4 +137,4 @@ npm publish --tag latest --access public
 
 ## Also Check
 
-* [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather)
+- [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather)
