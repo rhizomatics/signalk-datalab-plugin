@@ -1,6 +1,6 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser. ALPHA, use with caution. See also signalk-cli on PyPi.",
   "keywords": [
     "data",

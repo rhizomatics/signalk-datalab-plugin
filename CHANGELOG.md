@@ -1,15 +1,11 @@
-# What's Changed
-
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
-[0.3.0] - Sept 2026
+# v0.3.0 - Sept 2026
 
-## Dependencies
+## ✨ Enhancements
 
-- Updated Marimo to latest version, [0.25.0](https://github.com/marimo-team/marimo/releases/tag/0.25.0)
-
-## Notebook
+## New Notebooks
 
 - Fixes and improvements to main SignalK example notebook
 - History provider now defaults to the first one that isn't Kip, in both the notebook and ibis-signalk
@@ -33,6 +29,12 @@
   - New script for Claude to make checks after edits
   - Guidance for Claude on differences in working with notebooks in WASM (local browser) environment
   - New `npm run agent` command to open the notebook with marimo's MCP server, pre-registered for Claude Code in `.mcp.json`, and README steps for getting started
+
+## 📝 Other changes
+
+### Dependencies
+
+- Updated Marimo to latest version, [0.25.0](https://github.com/marimo-team/marimo/releases/tag/0.25.0)
 
 ## Development Use
 

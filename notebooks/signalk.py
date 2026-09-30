@@ -182,6 +182,13 @@ async def _(
         "method": pl.Series([], dtype=pl.Utf8),
         "context": pl.Series([], dtype=pl.Utf8),
     })
+    _row_schema = {
+        "timestamp": pl.Utf8,
+        "path": pl.Utf8,
+        "value": pl.Float64,
+        "method": pl.Utf8,
+        "context": pl.Utf8,
+    }
     signalk_data = _empty
     tables = {}
 
@@ -246,7 +253,7 @@ async def _(
         _long_rows.extend(_path_rows)
 
         tables[_tname] = (
-            pl.DataFrame(_path_rows)
+            pl.DataFrame(_path_rows, schema=_row_schema)
             .with_columns([
                 pl.col("timestamp").str.to_datetime(
                     format="%Y-%m-%dT%H:%M:%S%.fZ", time_zone="UTC", strict=False, time_unit="us"
@@ -258,7 +265,7 @@ async def _(
 
     if _long_rows:
         signalk_data = (
-            pl.DataFrame(_long_rows)
+            pl.DataFrame(_long_rows, schema=_row_schema)
             .with_columns([
                 pl.col("timestamp").str.to_datetime(
                     format="%Y-%m-%dT%H:%M:%S%.fZ", time_zone="UTC", strict=False, time_unit="us"
