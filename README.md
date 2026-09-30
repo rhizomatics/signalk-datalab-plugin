@@ -23,7 +23,7 @@ It comes with several _experiments_, working notebooks that use different ways t
 You'll need a _History Provider_ running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
 
 > [!TIP]
-> If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks. If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer!
+> If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks. If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer, with dependency aware cells like Excel.
 
 > [!WARNING]
 > Libraries with compiled code (polars, DuckDB, pyarrow, numpy, pandas and others) run in the browser only as special WebAssembly builds, which usually trail the desktop releases, sometimes by many months. In September 2026, polars in the browser is 1.33 while desktop is 1.44, and pyarrow is 22 against 25. So the browser can lack newer features, and occasionally has bugs that are long fixed on desktop. Code that works in a desktop notebook may fail in Data Lab, and the reverse. This will ease as more projects publish WebAssembly builds of their own. Pure Python libraries aren't affected.

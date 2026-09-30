@@ -133,6 +133,12 @@ function buildGallery(notebooks) {
         font-size: 0.75rem;
         font-weight: 600;
       }
+      .resources { margin-top: 40px; }
+      .resources h2 { font-size: 1.15rem; margin: 0 0 8px; }
+      .resources ul { margin: 0; padding-left: 20px; }
+      .resources li { margin: 6px 0; }
+      .resources a { color: var(--accent); font-weight: 600; }
+      .resources span { color: var(--muted); }
       footer { margin-top: 32px; color: var(--muted); font-size: 0.9rem; max-width: 70ch; }
       footer a { color: var(--accent); }
     </style>
@@ -144,12 +150,29 @@ function buildGallery(notebooks) {
         <h1>SignalK Data Lab</h1>
       </header>
       <p class="intro">
-        Notebooks for exploring your boat's SignalK data, running entirely in your browser. Start with Data Lab, or try one of
-        the experiments; each one explains its approach and its limitations when it opens.
+        Notebooks for exploring your boat's SignalK data, running entirely in your browser. Experiment with the
+        various notebooks to try different ways to load, analyze and present your boat's data.
       </p>
       <div class="grid">
 ${cards}
       </div>
+      <section class="resources">
+        <h2>Other resources</h2>
+        <ul>
+          <li><a href="https://marimo.io/gallery">marimo gallery</a> <span>— Example notebooks, to see what marimo can do outside of a boat.</span></li>
+          <li>
+            <a href="https://www.youtube.com/@marimo-team">marimo on YouTube</a> <span>— Tutorials and walkthroughs.</span>
+          </li>
+          <li>
+            <a href="https://signalk-cli.rhizomatics.org.uk">signalk-cli</a>
+            <span>— Command line tool and Python library for SignalK's history and streaming APIs.</span>
+          </li>
+          <li>
+            <a href="https://signalk.org/specification/1.8.2/doc/data_model.html">SignalK data model concepts.</a>
+            <span>— what the paths mean, and their units</span>
+          </li>
+        </ul>
+      </section>
       <footer>
         <p>
           Opening a notebook needs an internet connection, to load Python and some of its packages; the first time takes a
