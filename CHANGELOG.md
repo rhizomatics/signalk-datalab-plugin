@@ -3,7 +3,7 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
-[0.2.8] - Sept 2026
+[0.3.0] - Sept 2026
 ## Dependencies
 - Updated Marimo to latest version, [0.25.0](https://github.com/marimo-team/marimo/releases/tag/0.25.0)
 ## Notebook
