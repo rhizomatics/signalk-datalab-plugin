@@ -52,11 +52,13 @@
     "lint": "oxlint"
   },
   "dependencies": {
+    "compression": "^1.8.2",
     "express": ">=4"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@signalk/server-api": "^2.31.0",
+    "@types/compression": "^1.8.1",
     "@types/express": "^4.17.21",
     "@types/node": "^26.6.2",
     "oxfmt": "^0.70.0",
@@ -68,7 +70,8 @@
     "displayName": "Data Lab",
     "appIcon": "assets/logo.svg",
     "screenshots": [
-      "assets/screenshots/gallery.png"
+      "assets/screenshots/gallery.png",
+      "assets/screenshots/stream_gusts.png"
     ]
   }
 }

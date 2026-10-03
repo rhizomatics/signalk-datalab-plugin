@@ -61,9 +61,10 @@ void test("start and stop report plugin status", () => {
 void test("registerWithRouter serves the bundle and a /ui entry point", () => {
   const router = fakeRouter();
   createPlugin(fakeApp()).registerWithRouter(router);
-  assert.equal(router.uses.length, 1);
-  assert.equal(router.uses[0][0], "/");
-  assert.equal(typeof router.uses[0][1], "function");
+  assert.equal(router.uses.length, 2);
+  assert.equal(typeof router.uses[0][0], "function");
+  assert.equal(router.uses[1][0], "/");
+  assert.equal(typeof router.uses[1][1], "function");
   assert.equal(typeof router.gets["/ui"], "function");
 });
 
