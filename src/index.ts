@@ -24,9 +24,14 @@ module.exports = function (app: ServerAPI): Plugin {
       "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser — no Python required on the server.",
 
     registerWithRouter(router: PluginRouter) {
-      // gzip/brotli the JS/CSS/HTML chunks marimo's WASM export ships —
-      // there are hundreds of them, so shrinking each one adds up
-      router.use(compression());
+      // gzip the top-level HTML pages (not cached, so worth shrinking on
+      // every visit). Skip assets/ and wheels/: they're content-hashed and
+      // immutable-cached below, so each file is fetched at most once per
+      // client — compressing multi-MB JS/WASM chunks on every request was
+      // pure CPU cost, and saturated the threadpool badly enough on
+      // resource-constrained servers to blow past the pyodide worker's RPC
+      // startup timeout.
+      router.use(compression({ filter: (req) => !IMMUTABLE_DIR_PATTERN.test(req.path) }));
 
       // Serve all WASM bundle assets (JS chunks, fonts, icons, …). Hashed
       // filenames under assets/ and wheels/ get a far-future immutable
