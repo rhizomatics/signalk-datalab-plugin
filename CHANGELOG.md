@@ -1,11 +1,17 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
-# v0.5.1 - Sept 2026
+# v0.5.2 - Sept 2026
 
 ## ✨ Enhancements
 
 - Speed up data load with compression and caching of web assets (JS,CSS etc)
+
+# v0.5.1 - Sept 2026
+
+## ✨ Enhancements
+
+- More improvemenets for faster page data load
 
 # v0.5.0 - Sept 2026
 
