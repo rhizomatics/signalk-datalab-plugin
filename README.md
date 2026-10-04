@@ -6,8 +6,6 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/rhizomatics/signalk-einklabel-plugin/blob/main/LICENSE)
 [![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk)
 
-## BETA - Use with care
-
 Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run [entirely in the browser](https://docs.marimo.io/guides/wasm/), using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
 
 It comes with several _experiments_, working notebooks that use different ways to pull selected paths out of the SignalK History API and demonstration of how the data can be tabluated, charted or otherwise analyzed.
@@ -15,54 +13,59 @@ It comes with several _experiments_, working notebooks that use different ways t
 > [!TIP]
 > **Chrome** is recommended for access, since _Safari_ (iOS, macOS etc) will not load some of the resources required unless your SignalK server has a secure (`https`) address, and can be much slower starting up. Alternatively, switch on `ssl` in the SignalK settings - it will automatically redirect any links to the old `http` address though you wll be bothered by certificate warnings unless go through the rigmarole of setting up proper cerificates.
 
-> [!NOTE]
-> Whilst this all runs in the browser, the Marimo environment will also run server-side, so this may be an option in future with this plugin, or packaged as a separate plugin. The main up-side of running server-side is not being constrained by using `pyodide` to run Python in the browser, which means latest versions of `polars`,`duckdb` etc are available and fewer gotchas.
-
-## Running from SignalK
+## Quick Start
 
 - Install from the SignalK **App Store**
 - Launch the _Data Lab_ from the **Webapps** link on SignalK main menu
 
 You'll need a _History Provider_ running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
 
-> [!TIP]
-> If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks. If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer, with dependency aware cells like Excel.
+### Learning about Notebooks
 
-> [!WARNING]
-> Libraries with compiled code (polars, DuckDB, pyarrow, numpy, pandas and others) run in the browser only as special WebAssembly builds, which usually trail the desktop releases, sometimes by many months. In September 2026, polars in the browser is 1.33 while desktop is 1.44, and pyarrow is 22 against 25. So the browser can lack newer features, and occasionally has bugs that are long fixed on desktop. Code that works in a desktop notebook may fail in Data Lab, and the reverse. This will ease as more projects publish WebAssembly builds of their own. Pure Python libraries aren't affected.
+If you're not familiar with Data Notebooks, try the [Marimo Tutorials](https://www.youtube.com/@marimo-team) on YouTube, or the [gallery](https://marimo.io/gallery) of demonstration notebooks.
 
-## Simulating Data
+If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks are nicer, with dependency aware cells like Excel. They are also pure Python scripts under the hood, so easier to edit, refactor or execute from command line.
+
+### Simulating Data
 
 SignalK has several _simulator_ plugins that will generate navigation, environment and similar data. Its also easy to source real live weather data using plugins.
 
-### Ibis (experimental)
+## Pure Polars
+
+The **Analyze with Polars Dataframes** notebook uses [Polars](https://docs.pola.rs) (a modern Rust based iteration on `pandas`) to do all of the SignalK API integration and data manipulation.
+
+## Integrate with Ibis Framework
 
 The **SignalK Paths in Data Explorer with Ibis** notebook, linked from the top of Data Lab, connects [Ibis](https://ibis-project.org) to the History API when it opens. You can then query SignalK data with Ibis expressions and browse it in marimo's data browser. It takes a few seconds to load the first time.
 
 > [!WARNING]
 > Histograms aren't shown in the data browser for SignalK tables by default. Column stats (counts, missing values, min/max, averages) work, but the charts that need histograms are left out. To turn them on, install `duckdb` from marimo's package manager panel; it's a sizeable download. Overall figures cover the last hour unless you filter on `timestamp`.
 
-### Analyze and Export with signalk-cli
+## Export with signalk-cli
 
 The **Analyze and Export with signalk-cli** notebook, linked from the top of Data Lab, fetches history into a polars DataFrame with the [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python API, and charts how much the boat's position moved in each 15 minutes. You can also download the data as Feather or CSV, in the same format as the `signalk-cli` command line tool. Paths can be glob or regex patterns, e.g. `navigation.*`.
 
 > [!NOTE]
 > It installs `signalk-cli` when it opens, which takes a few seconds the first time.
 
-### SQL with DuckDB
+## SQL with DuckDB
 
 The **SQL with DuckDB** notebook fetches history into a `signalk_history` table and queries it with SQL cells running [DuckDB](https://duckdb.org) in the browser. Worked examples cover time bucketing, `PIVOT`, window functions for distance run, and `ASOF JOIN` to line up sensors that report at different rates. It can also query an uploaded CSV or Parquet file.
 
 > [!NOTE]
 > DuckDB and the packages marimo loads alongside it are about 28 MB, so the first visit takes a while. The other notebooks don't load DuckDB.
 
-### Live Stream With signalk-cli
+## Live Stream With signalk-cli
 
 The **Live Stream With signalk-cli** notebook subscribes to the SignalK delta stream and shows data as it arrives: a chart per path, redrawn every few seconds, and a table of the latest values. It uses the browser's own WebSocket, since signalk-cli's streaming client waits for each message in a way that would block the rest of the notebook in the browser. signalk-cli still builds the subscription and reads the messages. Only data received while the page is open is shown.
 
 Each notebook's opening cell lists the limitations of its approach.
 
-### Using an AI agent (advanced)
+## Add Your Own Notebook
+
+The **Add Your Own Notebook** explains how to save your own notebooks for reuse, within the more confining environment of client-side only Marimo.
+
+### Using an AI agent
 
 Marimo's **External agents** feature (a Labs feature, turned on in marimo's settings) can connect Claude Code, Codex, Gemini or OpenCode to the notebook in the browser. It needs a terminal command to start a bridge, so it's aimed at technical users for now:
 
@@ -158,6 +161,14 @@ git tag -f latest
 npm publish --tag latest --access public
 ```
 
-## Also Check
+## Limitations
 
-- [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather)
+Libraries with compiled code (polars, DuckDB, pyarrow, numpy, pandas and others) run in the browser only as special `emscripten` (WebAssembly) builds, which usually trail the desktop releases, sometimes by many months. In September 2026, polars in the browser is 1.33 while desktop is 1.44, and pyarrow is 22 against 25. So the browser can lack newer features, and occasionally has bugs that are long fixed on desktop. Code that works in a desktop notebook may fail in Data Lab, and the reverse. This will ease as more projects publish WebAssembly builds of their own, especially now that [PEP783](https://peps.python.org/pep-0783/) is accepted. Pure Python libraries aren't affected.
+
+The Marimo environment by default runs server-side, so this may be an option in future with this plugin, or packaged as a separate plugin. The main up-side of running server-side is not being constrained by using `pyodide` to run Python in the browser, which means latest versions of `polars`,`duckdb` etc are available and fewer gotchas. On the other hand, it means Python installed onto the SignalK server, and tiny `pi` servers on boats might not like the extra load.
+
+## Also Check Out
+
+- [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather). Also useful as a Python API for your own code.
+- More [SignalK plugins from Rhizomatics](https://www.rhizomatics.org.uk/sailing/) including support for eInk shelf labels, Bluetti powerbanks, using Teltonika modems as SignalK notifiers, squelching noisy SignalK deltas and more.
+- The [Boat Tech Directory](https://boat-tech-directory.rhizomatics.org.uk/) for the most comprehensive guide on the Internet to boat tech blogs, vendors, open source projects and more.

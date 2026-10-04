@@ -42,6 +42,7 @@
     "prepack": "npm run build",
     "preview": "npm run build:wasm && node scripts/preview.js",
     "preview:serve": "node scripts/preview.js",
+    "docs:dev": "npm --prefix site run dev",
     "test": "tsc && node --test test/*.test.js",
     "coverage": "tsc && node --test --experimental-test-coverage --test-coverage-include=dist/** test/*.test.js",
     "agent": "uv run --with-requirements requirements.txt --with \"marimo[mcp]\" marimo edit notebooks/signalk.py --watch --mcp --no-token --port 2718",
