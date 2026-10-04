@@ -20,8 +20,7 @@ module.exports = function (app: ServerAPI): Plugin {
   const plugin: Plugin = {
     id: PLUGIN_ID,
     name: "SignalK Data Lab",
-    description:
-      "Interactive data analysis notebooks for SignalK, using Marimo running as WebAssembly in the browser — no Python required on the server.",
+    description: "Interactive data analysis notebooks for SignalK, using Marimo running in the browser — no Python required on the server.",
 
     registerWithRouter(router: PluginRouter) {
       // gzip the top-level HTML pages (not cached, so worth shrinking on
