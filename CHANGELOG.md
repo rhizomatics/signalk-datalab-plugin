@@ -1,6 +1,12 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.5.3 - Sept 2026
+
+## ✨ Enhancements
+
+- Added CORS headers for all local calls
+
 # v0.5.2 - Sept 2026
 
 ## ✨ Enhancements

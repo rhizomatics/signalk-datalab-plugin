@@ -32,6 +32,16 @@ module.exports = function (app: ServerAPI): Plugin {
       // startup timeout.
       router.use(compression({ filter: (req) => !IMMUTABLE_DIR_PATTERN.test(req.path) }));
 
+      // Pyodide/marimo check self.crossOriginIsolated and fall back to a
+      // slower, single-threaded path (or hang waiting on the worker RPC) if
+      // it's false. These headers are what turn it on; the browser won't
+      // grant SharedArrayBuffer without them, regardless of origin.
+      router.use((_req, res, next) => {
+        res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+        res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+        next();
+      });
+
       // Serve all WASM bundle assets (JS chunks, fonts, icons, …). Hashed
       // filenames under assets/ and wheels/ get a far-future immutable
       // cache so repeat visits (e.g. from the same boat browser) skip the

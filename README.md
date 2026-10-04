@@ -12,6 +12,9 @@ Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware noteb
 
 It comes with several _experiments_, working notebooks that use different ways to pull selected paths out of the SignalK History API and demonstration of how the data can be tabluated, charted or otherwise analyzed.
 
+> [!TIP]
+> **Chrome** is recommended for access, since _Safari_ (iOS, macOS etc) will not load some of the resources required unless your SignalK server has a secure (`https`) address, and can be much slower starting up. Alternatively, switch on `ssl` in the SignalK settings - it will automatically redirect any links to the old `http` address though you wll be bothered by certificate warnings unless go through the rigmarole of setting up proper cerificates.
+
 > [!NOTE]
 > Whilst this all runs in the browser, the Marimo environment will also run server-side, so this may be an option in future with this plugin, or packaged as a separate plugin. The main up-side of running server-side is not being constrained by using `pyodide` to run Python in the browser, which means latest versions of `polars`,`duckdb` etc are available and fewer gotchas.
 
