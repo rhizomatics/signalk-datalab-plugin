@@ -161,6 +161,9 @@ def _():
     How much the boat moved in each 15 minutes: the standard deviation of latitude
     and longitude within each window, in metres. Near zero when moored, a few
     metres at anchor, and large when under way.
+
+    Note that the [Delta Squelch](https://github.com/rhizomatics/signalk-delta-squelch-plugin)
+    plugin will by design hugely reduce noisy position variability.
     """)
     return
 
