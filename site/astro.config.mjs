@@ -47,6 +47,8 @@ function readmeSidebar() {
 }
 
 export default defineConfig({
+  site: "https://rhizomatics.github.io",
+  base: "/signalk-datalab-plugin",
   integrations: [
     starlight({
       title: "SignalK Data Lab Plugin",
