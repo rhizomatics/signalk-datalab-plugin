@@ -52,6 +52,10 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "SignalK Data Lab Plugin",
+      logo: {
+        src: "../assets/logo.svg",
+        replacesTitle: false,
+      },
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/rhizomatics/signalk-datalab-plugin" }],
       sidebar: [{ label: "Readme", link: "/" }, ...readmeSidebar()],
     }),
