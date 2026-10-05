@@ -17,7 +17,7 @@
 
 ## ✨ Enhancements
 
-- More improvemenets for faster page data load
+- More improvements for faster page data load
 
 # v0.5.0 - Sept 2026
 
