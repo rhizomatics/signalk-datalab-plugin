@@ -13,7 +13,7 @@
     "signalk-node-server-plugin",
     "signalk-webapp"
   ],
-  "homepage": "https://github.com/rhizomatics/signalk-datalab-plugin#readme",
+  "homepage": "https://signalk-datalab.rhizomatics.org.uk/",
   "bugs": {
     "url": "https://github.com/rhizomatics/signalk-datalab-plugin/issues"
   },

@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightLlmsTxt from "starlight-llms-txt";
 import fs from "node:fs";
 import GithubSlugger from "github-slugger";
 
@@ -47,8 +48,7 @@ function readmeSidebar() {
 }
 
 export default defineConfig({
-  site: "https://rhizomatics.github.io",
-  base: "/signalk-datalab-plugin",
+  site: "https://signalk-datalab.rhizomatics.org.uk",
   integrations: [
     starlight({
       title: "SignalK Data Lab Plugin",
@@ -58,6 +58,7 @@ export default defineConfig({
       },
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/rhizomatics/signalk-datalab-plugin" }],
       sidebar: [{ label: "Readme", link: "/" }, ...readmeSidebar()],
+      plugins: [starlightLlmsTxt()],
     }),
   ],
 });
