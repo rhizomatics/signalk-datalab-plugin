@@ -67,6 +67,10 @@
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^5.9.3"
   },
+  "engines": {
+    "node": ">=22",
+    "signalk-server": ">=2.25.0"
+  },
   "signalk": {
     "displayName": "Data Lab",
     "appIcon": "assets/logo.svg",
