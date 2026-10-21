@@ -18,10 +18,6 @@
     "url": "https://github.com/rhizomatics/signalk-datalab-plugin/issues"
   },
   "license": "Apache-2.0",
-  "engines": {
-    "node": ">=22",
-    "signalk-server": ">=2.25.0"
-  },
   "author": "jey burrows",
   "repository": {
     "type": "git",
@@ -70,6 +66,10 @@
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22",
+    "signalk-server": ">=2.25.0"
   },
   "signalk": {
     "displayName": "Data Lab",
