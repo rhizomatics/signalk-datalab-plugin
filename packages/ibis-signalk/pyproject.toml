@@ -11,7 +11,7 @@ dependencies = ["ibis-framework>=12.0.0", "pyarrow>=17.0.0", "pyarrow-hotfix>=0.
 duckdb = ["ibis-framework[duckdb]>=12.0.0"]
 
 [build-system]
-requires = ["uv_build>=0.12.5,<0.13"]
+requires = ["uv_build>=0.12.5,<0.14"]
 build-backend = "uv_build"
 
 [tool.hatch.build.targets.wheel]
