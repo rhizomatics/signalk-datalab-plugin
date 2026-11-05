@@ -43,6 +43,13 @@ SIGNALK_URL=http://<boat-host>:<port> uv run marimo edit notebooks/dev.py
 
 `SIGNALK_URL` defaults to `http://localhost:3000`, the same as the main Data Lab notebook. The history provider defaults to the first one that isn't Kip; pass `provider=` to `do_connect()` to choose another.
 
+The tests don't need a server: `tests/conftest.py` stands in for the History API, and records each request so tests can check what was sent to the server as well as what came back. Pre-commit runs them whenever the package changes.
+
+```sh
+cd packages/ibis-signalk
+uv run --group dev pytest
+```
+
 ## How queries run
 
 Column selection, timestamp range filters and time-bucketed aggregates (`by=t.timestamp.truncate("h")` with mean/min/max/first/last) compile to a single History API request, so the server does the work.

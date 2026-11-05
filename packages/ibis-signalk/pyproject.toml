@@ -1,14 +1,18 @@
 [project]
 name = "ibis-signalk"
-version = "0.1.1"
+version = "0.1.2"
 description = "Ibis backend for the SignalK History API — code-less data discovery over marine sensor data"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["ibis-framework>=12.0.0", "pyarrow>=17.0.0", "pyarrow-hotfix>=0.6", "pandas>=2.0.0", "altair>=6.2.1"]
 
 [project.optional-dependencies]
-# Runs queries the History API can't answer (joins, histograms) locally
-duckdb = ["ibis-framework[duckdb]>=12.0.0"]
+# Runs queries the History API can't answer (joins, histograms) locally. DuckDB
+# needs pytz to return timezone-aware timestamps, but doesn't install it itself
+duckdb = ["ibis-framework[duckdb]>=12.0.0", "pytz"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.14"]
@@ -18,7 +22,7 @@ build-backend = "uv_build"
 packages = ["src/ibis_signalk"]
 
 [dependency-groups]
-dev = ["ibis-signalk[duckdb]", "marimo>=0.24.0", "pytest"]
+dev = ["ibis-signalk[duckdb]", "marimo>=0.25.2", "pytest"]
 
 [tool.uv]
 exclude-newer = "5 days"

@@ -1,6 +1,18 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.5.5 - Nov 2026
+
+## 🐛 Bug fixes
+
+- `ibis-signalk`: queries run locally in DuckDB (such as joins) kept their time filters, instead of falling back to the last hour
+- `ibis-signalk`: the `[duckdb]` extra now installs `pytz`, which DuckDB needs to return timestamps
+
+## 🔧 Maintenance
+
+- Test suite for `ibis-signalk`, run offline against a stand-in History API, and by pre-commit whenever the package changes
+- Pre-commit uses the installed (mise) node, rather than downloading its own, which failed when nodejs.org listed a pre-release as the latest
+
 # v0.5.4 - Nov 2026
 
 ## ✨ Enhancements

@@ -60,6 +60,13 @@ repos:
         language: system
         pass_filenames: false
         files: ^(src/|test/|package\.json$|tsconfig\.json$)
+      # Offline, against a fake History API (packages/ibis-signalk/tests/conftest.py)
+      - id: ibis-signalk-pytest
+        name: ibis-signalk pytest
+        entry: uv run --project packages/ibis-signalk --group dev pytest -q packages/ibis-signalk
+        language: system
+        pass_filenames: false
+        files: ^packages/ibis-signalk/(src/|tests/|pyproject\.toml$|uv\.lock$)
       - id: marimo-check
         name: marimo check
         entry: uv run --with-requirements requirements.txt marimo check

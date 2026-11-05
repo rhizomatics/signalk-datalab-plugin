@@ -209,7 +209,10 @@ class SignalKCompiler:
         tos: list = []
         unbounded_from = unbounded_to = False
         for node, children in Graph.from_bfs(root).items():
-            if source not in children:
+            # Only relations (filters, selects, joins, ...) count as uses of
+            # `source`: the Fields inside a filter's own predicates also point
+            # at it, and would otherwise make every filter look unbounded
+            if source not in children or not isinstance(node, ops.Relation):
                 continue
             if not isinstance(node, ops.Filter):
                 unbounded_from = unbounded_to = True
