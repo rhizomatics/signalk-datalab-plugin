@@ -11,14 +11,33 @@ Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware noteb
 It comes with several _experiments_, working notebooks that use different ways to pull selected paths out of the SignalK History API and demonstration of how the data can be tabluated, charted or otherwise analyzed.
 
 > [!TIP]
-> **Chrome** is recommended for access, since _Safari_ (iOS, macOS etc) will not load some of the resources required unless your SignalK server has a secure (`https`) address, and can be much slower starting up. Alternatively, switch on `ssl` in the SignalK settings - it will automatically redirect any links to the old `http` address though you wll be bothered by certificate warnings unless go through the rigmarole of setting up proper cerificates.
+> Notebooks start much faster when the SignalK server has a secure (`https`) address. Over plain `http` they still work, but start up slower in every browser. See [HTTPS or HTTP](#https-or-http).
 
 ## Quick Start
 
 - Install from the SignalK **App Store**
 - Launch the _Data Lab_ from the **Webapps** link on SignalK main menu
 
+The page then moves itself to the plugin's own address, `/plugins/signalk-datalab-plugin/ui`, where Data Lab can send the headers that let notebooks start quickly (see [HTTPS or HTTP](#https-or-http)). On SignalK server 2.31 or later this works for any logged-in user, including read-only ones; on older servers only admins can use that address, and everyone else stays on the **Webapps** one, which works but starts more slowly.
+
 You'll need a _History Provider_ running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
+
+### HTTPS or HTTP
+
+The notebooks run Python in the browser in a background worker. To share memory with that worker quickly, the browser has to put the page in _cross-origin isolation_. Data Lab sends the headers that ask for it (`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`), but browsers only honour them on a secure address: `https://...`, or `http://localhost`.
+
+On a plain `http` address, such as `http://10.0.0.5` or `http://openplotter.local:3000`, the browser ignores those headers. The notebooks still work, but:
+
+- startup is slower, and the browser console may show RPC timeout errors while the worker catches up
+- Safari (iPad, iPhone, Mac) is the slowest to start, and occasionally needs a reload
+
+To check, open the browser's developer console on a Data Lab page and type `crossOriginIsolated`. `true` means the fast path is in use.
+
+Ways to get the fast path:
+
+- **Switch on `ssl` in the SignalK server settings.** SignalK then serves `https` with a self-signed certificate, and redirects `http` links to it. Each device shows a certificate warning, which you accept once, until you set up a proper certificate. This works for every browser.
+- **Chrome or Edge on a single device:** in `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, add the server's address (e.g. `http://10.0.0.5`) and relaunch the browser. This affects only that browser, and has no equivalent in Safari.
+- **Use the browser on the server itself**, via `http://localhost`.
 
 ### Learning about Notebooks
 

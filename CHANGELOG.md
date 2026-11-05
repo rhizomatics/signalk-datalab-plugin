@@ -1,6 +1,19 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.5.4 - Nov 2026
+
+## ✨ Enhancements
+
+- On SignalK server 2.31 or later, read-only users can open Data Lab from the plugin's own address (`/plugins/signalk-datalab-plugin/ui`), which sends the headers notebooks need to start quickly. Opening Data Lab from the **Webapps** menu now moves there automatically when it can.
+- Documented the effect of `http` versus `https` on notebook start-up
+
+## 🔧 Maintenance
+
+- CI now also tests on armv7 (e.g. Cerbo GX), so the App Store shows it as supported
+- `express` dependency capped below the next major version (`>=4 <6`)
+- App Store screenshot resized to 1280x800
+
 # v0.5.3 - Sept 2026
 
 ## ✨ Enhancements

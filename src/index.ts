@@ -11,6 +11,10 @@ const PLUGIN_ID = "signalk-datalab-plugin";
 // pages and other top-level files are not hashed and must revalidate instead.
 const IMMUTABLE_DIR_PATTERN = /[/\\](assets|wheels)[/\\]/;
 
+// Everything public/ holds: top-level files (all have an extension, which
+// keeps "config" out), and anything under assets/ or wheels/
+const READONLY_STATIC_ROUTES = ["/:file([\\w.-]+\\.\\w+)", "/assets/*", "/wheels/*"];
+
 module.exports = function (app: ServerAPI): Plugin {
   // SignalK serves public/ at /@rhizomatics/signalk-datalab-plugin itself, as
   // the package has the signalk-webapp keyword; this router adds /ui under
@@ -46,19 +50,17 @@ module.exports = function (app: ServerAPI): Plugin {
       // filenames under assets/ and wheels/ get a far-future immutable
       // cache so repeat visits (e.g. from the same boat browser) skip the
       // network entirely instead of re-fetching hundreds of files.
-      router.use(
-        "/",
-        express.static(publicDir, {
-          setHeaders(res, filePath) {
-            if (IMMUTABLE_DIR_PATTERN.test(filePath)) {
-              res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-            }
-          },
-        }),
-      );
+      const serveStatic = express.static(publicDir, {
+        setHeaders(res, filePath) {
+          if (IMMUTABLE_DIR_PATTERN.test(filePath)) {
+            res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+          }
+        },
+      });
 
-      // /ui is the canonical entry point linked from the SignalK admin panel
-      router.get("/ui", (_req, res) => {
+      // /ui is the canonical entry point, linked from the SignalK admin panel
+      // and redirected to from the webapp copy of the gallery
+      const sendGallery: express.RequestHandler = (_req, res) => {
         const htmlPath = path.join(publicDir, "index.html");
         if (fs.existsSync(htmlPath)) {
           res.sendFile(htmlPath);
@@ -72,7 +74,23 @@ module.exports = function (app: ServerAPI): Plugin {
                 "</body></html>",
             );
         }
-      });
+      };
+
+      // Plugin routes are admin-only, unless (on servers 2.31 and later) they
+      // are registered through router.access(). The server matches each
+      // route's path (path-to-regexp 0.1) against the request, so a blanket
+      // "/*" would also open up the server's own GET /plugins/<id>/config;
+      // instead, only files with an extension, and the two asset folders.
+      if (typeof router.access === "function") {
+        const readonly = router.access("readonly");
+        readonly.get("/ui", sendGallery);
+        for (const route of READONLY_STATIC_ROUTES) {
+          readonly.get(route, serveStatic);
+        }
+      } else {
+        router.use("/", serveStatic);
+        router.get("/ui", sendGallery);
+      }
     },
 
     schema: { type: "object", properties: {} },

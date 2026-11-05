@@ -1,5 +1,13 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+
+# Node-based hooks (oxlint, oxfmt) use the node and npm on PATH - locally, the one mise.toml pins -
+# rather than letting nodeenv download its own. nodeenv's default takes the newest entry in
+# nodejs.org's release index, and when that's a pre-release (e.g. v27.0.0-alpha.0.0.0, Nov 2026) it
+# crashes with "ValueError: invalid literal for int() with base 10: '0-alpha'".
+default_language_version:
+  node: system
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

@@ -1,6 +1,6 @@
 {
   "name": "@rhizomatics/signalk-datalab-plugin",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Interactive data analysis notebooks for SignalK, using Marimo running in the browser. Experiment with dataframes, live streaming charts, DuckDB, signalk-cli, polars, Ibis Framework in pre-packaged notebooks. BETA, use with caution. ",
   "keywords": [
     "data",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "compression": "^1.8.2",
-    "express": ">=4"
+    "express": ">=4 <6"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

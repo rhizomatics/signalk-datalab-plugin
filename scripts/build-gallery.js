@@ -14,6 +14,9 @@ const publicDir = path.join(root, "public");
 const MAIN = "signalk.py";
 const MAIN_PAGE = "datalab.html";
 
+// The plugin's own route for the gallery, matching PLUGIN_ID in src/index.ts
+const PLUGIN_UI = "/plugins/signalk-datalab-plugin/ui";
+
 function pageFor(notebook) {
   return notebook === MAIN ? MAIN_PAGE : `${path.parse(notebook).name}.html`;
 }
@@ -72,6 +75,21 @@ function buildGallery(notebooks) {
     <link rel="icon" href="favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <script>
+      // SignalK also serves this page as a webapp, at /@rhizomatics/..., where
+      // the plugin can't add the COOP/COEP headers notebooks need for
+      // cross-origin isolation. Move to the plugin route when this user can
+      // reach it: anyone on servers 2.31+ (router.access), admins on older ones.
+      (function () {
+        var target = "${PLUGIN_UI}";
+        if (location.pathname.indexOf("/plugins/") === 0 || !window.fetch) return;
+        fetch(target, { credentials: "same-origin", cache: "no-store" })
+          .then(function (res) {
+            if (res.ok && !res.redirected) location.replace(target);
+          })
+          .catch(function () {});
+      })();
+    </script>
     <style>
       :root {
         --bg: #f6f7f9;
