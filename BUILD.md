@@ -30,7 +30,9 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
 
 ## Release
 
-`npm publish` rebuilds everything first (`prepack` runs `npm run build`), so the publishing machine needs Node.js and [uv](https://docs.astral.sh/uv/).
+Every release goes through [.github/workflows/release.yml](.github/workflows/release.yml), which runs when a GitHub release is published. It uses npm trusted publishing (OIDC, with a provenance attestation), so there is no npm token to manage, and it only _stages_ the release: nothing is live on npm until a maintainer approves it. Don't run `npm publish` locally.
+
+The workflow checks that the release tag matches `package.json`, runs lint, the format check and the tests, then runs `npm stage publish`. Its `prepack` step rebuilds everything (`npm run build`), including the WASM notebooks and the wheel, using uv on the runner. marimo resolves to the newest release outside `uv.toml`'s `exclude-newer` window at that moment, which may be newer than the one you tested with locally.
 
 1. Set the version in `package.json` and finish its section in [CHANGELOG.md](CHANGELOG.md):
 
@@ -38,13 +40,7 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
    npm version <VERSION> --no-git-tag-version
    ```
 
-2. Commit and push, then wait for the SignalK Plugin CI workflow to pass on GitHub. The pre-commit hooks lint and format the changed files, run the tests when plugin code changes, and run `marimo check` on changed notebooks. To run them all over every file, for example after upgrading marimo:
-
-   ```bash
-   prek run --all-files
-   ```
-
-3. Rebuild from scratch, then check what the package will contain, including `assets/logo.svg` and `assets/screenshots/` for the App Store. `npm run clean` removes everything the build generates (`dist/`, `public/`, `coverage/`):
+2. Rebuild from scratch, then check what the package will contain, including `assets/logo.svg` and `assets/screenshots/` for the App Store. `npm run clean` removes everything the build generates (`dist/`, `public/`, `coverage/`):
 
    ```bash
    npm run clean
@@ -52,29 +48,42 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
    npm pack --dry-run
    ```
 
-4. Tag the release. Version tags should never move, so only `latest` is forced:
+3. Commit and push to `main`, then wait for the SignalK Plugin CI workflow to pass on GitHub. The pre-commit hooks lint and format the changed files, run the tests when plugin code changes, and run `marimo check` on changed notebooks. To run them all over every file, for example after upgrading marimo:
 
    ```bash
-   git tag v<VERSION>
-   git tag -f latest
-   git push origin v<VERSION>
+   prek run --all-files
+   ```
+
+4. Create the GitHub release, which creates the `v<VERSION>` tag and starts the release workflow. The notes are the version's CHANGELOG section:
+
+   ```bash
+   gh release create v<VERSION> --target main --title v<VERSION> \
+     --notes-file <(sed -n '/^# v<VERSION> /,/^# v/p' CHANGELOG.md | sed '1d;$d')
+   ```
+
+   The dist-tag follows the tag name: `alpha`, `beta` or `rc` in the tag publishes under that dist-tag, any other release marked as a pre-release goes to `next`, and everything else to `latest`.
+
+5. Watch the workflow, then approve the staged version on npmjs.com (the package's **Staged Packages** tab), or with `npm stage approve <stage-id>` and 2FA:
+
+   ```bash
+   gh run watch "$(gh run list --workflow release.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
+   ```
+
+6. Move the `latest` git tag to the release. Version tags should never move, so only `latest` is forced:
+
+   ```bash
+   git fetch --tags
+   git tag -f latest v<VERSION>
    git push -f origin latest
-   ```
-
-5. Publish to npm:
-
-   ```bash
-   npm login
-   npm publish --tag latest --access public
-   ```
-
-6. Create the GitHub release, with the version's CHANGELOG section as its notes:
-
-   ```bash
-   gh release create v<VERSION> --title v<VERSION> --notes-file <notes.md>
    ```
 
 7. Install it from the SignalK App Store on a test server, and check that:
    - `/@rhizomatics/signalk-datalab-plugin/` opens the gallery (SignalK serves `public/` itself, as the package has the `signalk-webapp` keyword)
    - a notebook opens and loads data
    - the App Store shows the icon and screenshot
+
+### One-off setup
+
+- npmjs.com → package **Settings** → **Trusted Publisher** → GitHub Actions: org `rhizomatics`, repo `signalk-datalab-plugin`, workflow `release.yml`, environment `npm`, allowed action: stage publish.
+- Then, under **Publishing access**, choose "Require two-factor authentication and disallow tokens", so only the workflow can publish.
+- GitHub repo → **Settings** → **Environments** → create `npm`. Optionally add yourself as a required reviewer and restrict deployment to `v*` tags.
