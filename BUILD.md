@@ -41,7 +41,7 @@ The notebooks install `signalk-cli>=3.0.0` from PyPI when they open in the brows
 2. Commit and push, then wait for the SignalK Plugin CI workflow to pass on GitHub. The pre-commit hooks lint and format the changed files, run the tests when plugin code changes, and run `marimo check` on changed notebooks. To run them all over every file, for example after upgrading marimo:
 
    ```bash
-   pre-commit run --all-files
+   prek run --all-files
    ```
 
 3. Rebuild from scratch, then check what the package will contain, including `assets/logo.svg` and `assets/screenshots/` for the App Store. `npm run clean` removes everything the build generates (`dist/`, `public/`, `coverage/`):
