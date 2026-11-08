@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@rhizomatics/signalk-datalab-plugin.svg)](https://www.npmjs.com/package/@rhizomatics/signalk-datalab-plugin)
 [![code style: oxfmt](https://img.shields.io/badge/code_style-oxfmt-blue.svg)](https://github.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/rhizomatics/signalk-datalab-plugin/blob/main/LICENSE)
-[![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk)
+[![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk) [![managed by hq](https://raw.githubusercontent.com/rhizomatics/hq/main/assets/badge-managed-by-hq.svg)](https://github.com/rhizomatics/hq)
 
 Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run [entirely in the browser](https://docs.marimo.io/guides/wasm/), using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
 
