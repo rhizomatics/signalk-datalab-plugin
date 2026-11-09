@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    uses: SignalK/signalk-server/.github/workflows/plugin-ci.yml@master
+    uses: SignalK/signalk-server/.github/workflows/plugin-ci.yml@b6f8adf6609525b31eac390fdd867b88c09590b4
     with:
       build-command: 'curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="$HOME/.local/bin:$PATH" && npm run build:ts && npm run build:wasm'
       enable-armv7: true
