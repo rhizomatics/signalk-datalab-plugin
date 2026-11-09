@@ -50,7 +50,7 @@
     "build:wheel": "node scripts/build-wheel.js",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "lint": "oxlint"
+    "lint": "oxlint src scripts test"
   },
   "dependencies": {
     "compression": "^1.8.2",
