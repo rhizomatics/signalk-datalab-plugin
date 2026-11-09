@@ -234,13 +234,6 @@ The Marimo settings menu offers a way to load more common packages quickly using
 
 ![Optional Dependencies](assets/screenshots/optional_dependencies.png)
 
-### Release
-
-```bash
-git tag -f latest
-npm publish --tag latest --access public
-```
-
 ## Limitations
 
 Libraries with compiled code (polars, DuckDB, pyarrow, numpy, pandas and others) run in the browser only as special `emscripten` (WebAssembly) builds, which usually trail the desktop releases, sometimes by many months. In September 2026, polars in the browser is 1.33 while desktop is 1.44, and pyarrow is 22 against 25. So the browser can lack newer features, and occasionally has bugs that are long fixed on desktop. Code that works in a desktop notebook may fail in Data Lab, and the reverse. This will ease as more projects publish WebAssembly builds of their own, especially now that [PEP783](https://peps.python.org/pep-0783/) is accepted. Pure Python libraries aren't affected.
@@ -250,5 +243,5 @@ The Marimo environment by default runs server-side, so this may be an option in 
 ## Also Check Out
 
 - [signalk-cli](https://pypi.org/project/signalk-cli/) - A Python based CLI for extracting data and exploring paths on the SignalK APIs, with output to CSV or Apache Arrow dataframe (Feather). Also useful as a Python API for your own code.
-- More [SignalK plugins from Rhizomatics](https://www.rhizomatics.org.uk/sailing/) including support for eInk shelf labels, Bluetti powerbanks, using Teltonika modems as SignalK notifiers, squelching noisy SignalK deltas and more.
+- More [SignalK plugins from Rhizomatics](https://www.rhizomatics.org.uk/sailing/) including support for eInk shelf labels (including LLM generated images using SignalK data), Bluetti powerbanks, using Teltonika modems as SignalK notifiers, squelching noisy SignalK deltas and more.
 - The [Boat Tech Directory](https://boat-tech-directory.rhizomatics.org.uk/) for the most comprehensive guide on the Internet to boat tech blogs, vendors, open source projects and more.
