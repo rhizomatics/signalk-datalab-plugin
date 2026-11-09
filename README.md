@@ -13,6 +13,8 @@ It comes with several _experiments_, working notebooks that use different ways t
 > [!TIP]
 > Notebooks start much faster when the SignalK server has a secure (`https`) address. Over plain `http` they still work, but start up slower in every browser. See [HTTPS or HTTP](#https-or-http).
 
+![Notebook Gallery](assets/screenshots/gallery.png)
+
 ## Quick Start
 
 - Install from the SignalK **App Store**
@@ -80,6 +82,8 @@ The **Live Stream With signalk-cli** notebook subscribes to the SignalK delta st
 
 Each notebook's opening cell lists the limitations of its approach.
 
+![Streaming Wind Gusts](assets/screenshots/stream_gusts.png)
+
 ## Geospatial Passage
 
 The **Geospatial Passage** notebook turns `navigation.position` history into a passage log. It splits the track into legs under way and stops at anchor or alongside, with each stop's swing circle, and maps them over OpenStreetMap with [OpenSeaMap](https://www.openseamap.org) seamarks. Selecting legs or stops in the tables picks them out on the map. The tables are [GeoPandas](https://geopandas.org) GeoDataFrames, so marimo's download button offers GeoJSON and GeoParquet, for QGIS, Google Earth, Felt or geojson.io. There's also a GPX download for OpenCPN and chart plotters.
@@ -88,6 +92,8 @@ Without any history, choose **Demo passage** for a made-up day on the Firth of C
 
 > [!NOTE]
 > It loads GeoPandas, Shapely, pyproj, pandas and pyarrow when it opens, about 20 MB, so the first visit takes a while. The map background needs an internet connection; without one, the track is drawn on a blank background and the downloads still work.
+
+![Geospatial Example](assets/screenshots/geospatial.png)
 
 ## Add Your Own Notebook
 

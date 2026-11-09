@@ -76,7 +76,8 @@
     "appIcon": "assets/logo.svg",
     "screenshots": [
       "assets/screenshots/gallery.png",
-      "assets/screenshots/stream_gusts.png"
+      "assets/screenshots/stream_gusts.png",
+      "assets/screenshots/geospatial.png"
     ]
   }
 }
