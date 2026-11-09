@@ -5,5 +5,7 @@ minimum_release_age = "7d"
 [tools]
 node = "lts"
 oxfmt = "latest"
-oxlint = "latest"
+# npm backend, not the aqua default: aqua's oxc monorepo tag mapping (oxlint_v/apps_v)
+# breaks `latest` resolution under minimum_release_age
+"npm:oxlint" = "latest"
 prek = "latest"

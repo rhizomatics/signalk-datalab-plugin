@@ -80,6 +80,15 @@ The **Live Stream With signalk-cli** notebook subscribes to the SignalK delta st
 
 Each notebook's opening cell lists the limitations of its approach.
 
+## Geospatial Passage
+
+The **Geospatial Passage** notebook turns `navigation.position` history into a passage log. It splits the track into legs under way and stops at anchor or alongside, with each stop's swing circle, and maps them over OpenStreetMap with [OpenSeaMap](https://www.openseamap.org) seamarks. Selecting legs or stops in the tables picks them out on the map. The tables are [GeoPandas](https://geopandas.org) GeoDataFrames, so marimo's download button offers GeoJSON and GeoParquet, for QGIS, Google Earth, Felt or geojson.io. There's also a GPX download for OpenCPN and chart plotters.
+
+Without any history, choose **Demo passage** for a made-up day on the Firth of Clyde; it's picked automatically when the server has no history provider.
+
+> [!NOTE]
+> It loads GeoPandas, Shapely, pyproj, pandas and pyarrow when it opens, about 20 MB, so the first visit takes a while. The map background needs an internet connection; without one, the track is drawn on a blank background and the downloads still work.
+
 ## Add Your Own Notebook
 
 The **Add Your Own Notebook** explains how to save your own notebooks for reuse, within the more confining environment of client-side only Marimo.

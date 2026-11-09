@@ -1,6 +1,18 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.6.0 - Nov 2026
+
+## Marimo
+
+Release v0.25.2 of Marimo adds geospatial support
+
+> Geospatial dataframes (GeoPandas, Arrow, and DuckDB geometry) can now be downloaded as GeoJSON or GeoParquet, alongside the existing CSV, JSON, and Parquet options. Also works with mo.ui.table and mo.ui.dataframe.
+
+## ✨ Enhancements
+
+- New **Geospatial Passage** notebook: splits `navigation.position` history into legs and stops (with anchor swing circles), maps them over OpenStreetMap with OpenSeaMap seamarks, and downloads them as GeoJSON or GeoParquet using marimo 0.25.2's geospatial export, or as GPX for chart plotters
+
 # v0.5.5 - Nov 2026
 
 ## 🐛 Bug fixes
@@ -10,7 +22,7 @@
 
 ## 🔧 Maintenance
 
-- Test suite for `ibis-signalk`, run offline against a stand-in History API, and by pre-commit whenever the package changes
+- Test suite for `ibis-signalk`, run offline against a stand-in History API, and by pre-commit (`prek`) whenever the package changes
 - Pre-commit uses the installed (mise) node, rather than downloading its own, which failed when nodejs.org listed a pre-release as the latest
 
 # v0.5.4 - Nov 2026
