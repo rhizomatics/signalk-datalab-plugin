@@ -228,15 +228,28 @@ async def _(
             not fetch_btn.value, mo.callout(mo.md("Press **Fetch track** to load."), kind="info")
         )
         _params = {
-            "paths": "navigation.position",
             "from": (_now - timedelta(hours=duration_input.value)).isoformat().replace("+00:00", "Z"),
             "to": _now.isoformat().replace("+00:00", "Z"),
-            "resolution": str(resolution_input.value),
         }
         if provider_input.value:
             _params["provider"] = provider_input.value
         try:
             with mo.status.spinner(title="Fetching positions…"):
+                # Some providers store positions as two number paths instead
+                # of one navigation.position object, so ask which it has
+                _resp = await pyfetch(
+                    f"{signalk_url}/signalk/v2/api/history/paths?{urlencode(_params)}",
+                    credentials="include",
+                )
+                _available = json.loads(await _resp.string())
+                _split = ["navigation.position.latitude", "navigation.position.longitude"]
+                _params["paths"] = (
+                    ",".join(_split)
+                    if "navigation.position" not in _available
+                    and all(p in _available for p in _split)
+                    else "navigation.position"
+                )
+                _params["resolution"] = str(resolution_input.value)
                 _resp = await pyfetch(
                     f"{signalk_url}/signalk/v2/api/history/values?{urlencode(_params)}",
                     credentials="include",
@@ -529,31 +542,38 @@ def parse_positions(payload: dict) -> pl.DataFrame:
     """Turn a History API /values response into timestamp, longitude, latitude rows.
 
     Positions arrive as [longitude, latitude] arrays, or from some providers as
-    {"latitude", "longitude"} objects. Null Island (0, 0) and out of range
-    values are dropped, as are repeated timestamps.
+    {"latitude", "longitude"} objects, or as two number paths,
+    navigation.position.latitude and navigation.position.longitude. Null
+    Island (0, 0) and out of range values are dropped, as are repeated
+    timestamps.
     """
-    columns = payload.get("values", [])
-    index = next(
-        (i for i, c in enumerate(columns) if c.get("path") == "navigation.position"),
-        None,
-    )
+    columns = [c.get("path") for c in payload.get("values", [])]
+
+    def column(path):
+        return columns.index(path) + 1 if path in columns else None
+
+    whole = column("navigation.position")
+    lat_col = column("navigation.position.latitude")
+    lon_col = column("navigation.position.longitude")
     rows = []
-    if index is not None:
-        for row in payload.get("data", []):
-            if len(row) <= index + 1:
-                continue
-            value = row[index + 1]
+    for row in payload.get("data", []):
+        if whole is not None and len(row) > whole:
+            value = row[whole]
             if isinstance(value, list) and len(value) >= 2:
                 lon, lat = value[0], value[1]
             elif isinstance(value, dict):
                 lon, lat = value.get("longitude"), value.get("latitude")
             else:
                 continue
-            if not all(isinstance(v, (int, float)) for v in (lon, lat)):
-                continue
-            if abs(lon) > 180 or abs(lat) > 90 or (lon == 0 and lat == 0):
-                continue
-            rows.append((row[0], float(lon), float(lat)))
+        elif lat_col is not None and lon_col is not None and len(row) > max(lat_col, lon_col):
+            lon, lat = row[lon_col], row[lat_col]
+        else:
+            continue
+        if not all(isinstance(v, (int, float)) for v in (lon, lat)):
+            continue
+        if abs(lon) > 180 or abs(lat) > 90 or (lon == 0 and lat == 0):
+            continue
+        rows.append((row[0], float(lon), float(lat)))
 
     return (
         pl.DataFrame(

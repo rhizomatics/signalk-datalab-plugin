@@ -3,6 +3,8 @@ import starlight from "@astrojs/starlight";
 import starlightLlmsTxt from "starlight-llms-txt";
 import fs from "node:fs";
 import GithubSlugger from "github-slugger";
+import { satteri } from "@astrojs/markdown-satteri";
+import githubAlerts from "./github-alerts.mjs";
 
 function readmeSidebar() {
   const md = fs.readFileSync("../README.md", "utf8");
@@ -49,9 +51,16 @@ function readmeSidebar() {
 
 export default defineConfig({
   site: "https://signalk-datalab.rhizomatics.org.uk",
+  markdown: {
+    // README.md uses GitHub's `> [!NOTE]` alerts; show them as Starlight asides
+    processor: satteri({ mdastPlugins: [githubAlerts] }),
+  },
   integrations: [
     starlight({
       title: "SignalK Data Lab Plugin",
+      // The 404 page is src/content/docs/404.md, built like any other page;
+      // Starlight's own /404 route would build the same path twice
+      disable404Route: true,
       logo: {
         src: "../assets/logo.svg",
         replacesTitle: false,

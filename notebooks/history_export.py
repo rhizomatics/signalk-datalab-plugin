@@ -144,7 +144,9 @@ def _(
     # on strings it imported from Arrow (to_arrow() panics), which breaks
     # DuckDB and anything else that reads the frame as Arrow. Fixed in polars
     # 1.38 (pola-rs/polars#26328); remove once Pyodide ships 1.38 or later
-    history_df = pl.DataFrame(history_result.to_arrow()).with_columns(pl.col(pl.String) + "")
+    history_df = tidy_history(
+        pl.DataFrame(history_result.to_arrow()).with_columns(pl.col(pl.String) + "")
+    )
 
     mo.vstack([
         mo.md(f"**{history_df.height:,}** rows from {len(history_result.paths)} path(s)"),
@@ -168,7 +170,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(history_df):
     _has_position = {"latitude", "longitude"} <= set(history_df.columns)
     _positions = (
@@ -238,6 +240,51 @@ def _(history_df, history_output, history_result):
         mo.download(_csv.getvalue().encode(), filename="signalk-history.csv", label="Download CSV"),
     ], justify="start")
     return
+
+
+@app.function(hide_code=True)
+def tidy_history(df: pl.DataFrame) -> pl.DataFrame:
+    """Make signalk-cli's wide history frame consistent whatever the provider.
+
+    - A text path such as navigation.datetime (from NMEA RMC sentences) turns
+      min_value/avg_value/max_value into text for every path. Numbers become
+      numbers again, and the text is kept in text_value.
+    - Some providers store positions as two number paths,
+      navigation.position.latitude and .longitude. Their rows are merged into
+      navigation.position rows with latitude and longitude columns, the shape
+      positions otherwise arrive in.
+    """
+    value_columns = [c for c in ("min_value", "avg_value", "max_value") if c in df.columns]
+    if "avg_value" in df.columns and df.schema["avg_value"] == pl.String:
+        df = df.with_columns(
+            text_value=pl.when(pl.col("avg_value").cast(pl.Float64, strict=False).is_null())
+            .then(pl.col("avg_value"))
+        )
+    df = df.with_columns(
+        pl.col(c).cast(pl.Float64, strict=False) for c in value_columns if df.schema[c] == pl.String
+    )
+
+    lat_path, lon_path = "navigation.position.latitude", "navigation.position.longitude"
+    if "avg_value" in df.columns and {lat_path, lon_path} <= set(df["path"].unique().to_list()):
+
+        def part(path, name):
+            return df.filter(pl.col("path") == path).select(
+                "timestamp", pl.col("avg_value").alias(name)
+            )
+
+        merged = (
+            part(lat_path, "latitude")
+            .join(part(lon_path, "longitude"), on="timestamp")
+            .with_columns(path=pl.lit("navigation.position"))
+        )
+        df = pl.concat(
+            [df.filter(~pl.col("path").is_in([lat_path, lon_path])), merged],
+            how="diagonal_relaxed",
+        ).sort("timestamp", "path")
+    # Rebuild the strings once more: Pyodide's polars 1.33 panics ("capacity
+    # overflow") when strings made by the join and concat above, or by
+    # pl.lit, are handed on as Arrow, which DuckDB and the table view both do
+    return df.with_columns(pl.col(pl.String) + "")
 
 
 if __name__ == "__main__":

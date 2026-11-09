@@ -24,7 +24,26 @@ def test_schema_maps_paths_to_columns(con):
         "navigation__speedOverGround": ibis.dtype("float64"),
         "navigation__courseOverGroundTrue": ibis.dtype("float64"),
         "navigation__position": ibis.dtype("json"),
+        "navigation__datetime": ibis.dtype("string"),
     }
+
+
+def test_text_paths_are_returned_as_text(con):
+    df = con.table("navigation").select("timestamp", "navigation__datetime").execute()
+    assert df["navigation__datetime"][0] == "2026-07-01T12:00:00.000Z"
+
+
+def test_whole_namespace_loads_with_text_values(con):
+    df = con.table("navigation").execute()
+    assert len(df) == 5
+
+
+def test_unexpected_text_in_a_numeric_path_becomes_null(con):
+    t = con.table("environment")
+    assert t.schema()["environment__forecast__description"] == ibis.dtype("float64")
+    df = t.select("timestamp", "environment__forecast__description").execute()
+    assert df["environment__forecast__description"].tolist()[2] == 3.5
+    assert df["environment__forecast__description"].isna().sum() == 4
 
 
 def test_select_fetches_only_the_selected_path(con, server):

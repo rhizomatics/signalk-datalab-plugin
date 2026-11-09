@@ -25,8 +25,9 @@ def _():
     your browser. The history is fetched into a table called `signalk_history`, and
     the SQL cells below show what DuckDB does well with boat data: lining up sensors
     that report at different rates, bucketing by time, pivoting, and window
-    functions. Edit any of them, or add your own SQL cell with the **SQL** button
-    under a cell.
+    functions. Their SQL is hidden to keep the page short; open any cell to read
+    or edit its query, or add your own SQL cell with the **SQL** button under a
+    cell.
 
     DuckDB and its dependencies are about 28 MB, so the first visit takes a while
     to load. Your browser keeps them for next time.
@@ -136,12 +137,18 @@ def _(duration_input, paths_input, provider_input, signalk_cli, signalk_url):
     # on strings it imported from Arrow (to_arrow() panics), which DuckDB
     # needs to read the frame. Fixed in polars 1.38 (pola-rs/polars#26328);
     # remove once Pyodide ships 1.38 or later
-    _df = pl.DataFrame(_result.to_arrow()).with_columns(pl.col(pl.String) + "")
+    _df = tidy_history(pl.DataFrame(_result.to_arrow()).with_columns(pl.col(pl.String) + ""))
     signalk_history = _df.with_columns(
         pl.lit(None, dtype=pl.Float64).alias(_c)
         for _c in ("latitude", "longitude", "min_value", "avg_value", "max_value")
         if _c not in _df.columns
     )
+    if "text_value" not in signalk_history.columns:
+        # Built as a string column, not pl.lit: Pyodide's polars 1.33 panics
+        # when a pl.lit string column is handed to DuckDB as Arrow
+        signalk_history = signalk_history.with_columns(
+            text_value=pl.lit(None, dtype=pl.String) + ""
+        )
 
     mo.md(
         f"Fetched **{signalk_history.height:,}** rows from {len(_result.paths)} path(s) "
@@ -162,7 +169,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(signalk_history):
     path_summary = mo.sql(
         f"""
@@ -184,25 +191,32 @@ def _():
     mo.md(r"""
     ## One column per path
 
-    `time_bucket` averages each path over 15 minutes, and `PIVOT` turns the paths
-    into columns, giving one row per 15 minutes. Speeds and angles are in SI units,
-    metres per second and radians.
+    `time_bucket` averages each path over 15 minutes into a temporary DuckDB
+    table, then `PIVOT` turns the paths into columns, giving one row per 15
+    minutes. Speeds and angles are in SI units, metres per second and radians.
+
+    The averages go into a table first because `PIVOT` runs a hidden query to
+    find the column names, and in the browser that query can fail to see
+    notebook dataframes such as `signalk_history` ("Table ... does not exist")
+    the first time it runs.
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(signalk_history):
     quarter_hours = mo.sql(
         f"""
-        PIVOT (
-            SELECT
-                time_bucket(INTERVAL 15 MINUTE, timestamp) AS quarter_hour,
-                path,
-                avg_value
-            FROM signalk_history
-            WHERE avg_value IS NOT NULL
-        )
+        CREATE OR REPLACE TEMP TABLE quarter_hour_averages AS
+        SELECT
+            time_bucket(INTERVAL 15 MINUTE, timestamp) AS quarter_hour,
+            path,
+            avg(avg_value) AS avg_value
+        FROM signalk_history
+        WHERE avg_value IS NOT NULL
+        GROUP BY ALL;
+
+        PIVOT quarter_hour_averages
         ON path
         USING avg(avg_value)
         ORDER BY quarter_hour
@@ -223,7 +237,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(signalk_history):
     distance_run = mo.sql(
         f"""
@@ -271,7 +285,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(signalk_history):
     track = mo.sql(
         f"""
@@ -297,7 +311,7 @@ def _(signalk_history):
     return (track,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(track):
     # SQL results are DuckDB relations (sql_output="native"), so queries can
     # build on each other inside DuckDB; convert to polars for charting
@@ -331,7 +345,7 @@ def _():
     return (upload,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(upload):
     mo.stop(not upload.value)
     uploaded_path = f"/tmp/{upload.name()}"
@@ -340,7 +354,7 @@ def _(upload):
     return (uploaded_path,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(uploaded_path):
     uploaded = mo.sql(
         f"""
@@ -355,14 +369,14 @@ def _():
     mo.md(r"""
     ## Your turn
 
-    Change this query, or add SQL cells of your own. The result of every query
+    Open the cell below to change its query, or add SQL cells of your own. The result of every query
     above can be queried too, e.g. `SELECT max(distance_nm) FROM distance_run`.
     To work with a result in Python, convert it with `pl.DataFrame(distance_run)`.
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(signalk_history):
     _df = mo.sql(
         f"""
@@ -370,6 +384,51 @@ def _(signalk_history):
         """
     )
     return
+
+
+@app.function(hide_code=True)
+def tidy_history(df: pl.DataFrame) -> pl.DataFrame:
+    """Make signalk-cli's wide history frame consistent whatever the provider.
+
+    - A text path such as navigation.datetime (from NMEA RMC sentences) turns
+      min_value/avg_value/max_value into text for every path. Numbers become
+      numbers again, and the text is kept in text_value.
+    - Some providers store positions as two number paths,
+      navigation.position.latitude and .longitude. Their rows are merged into
+      navigation.position rows with latitude and longitude columns, the shape
+      positions otherwise arrive in.
+    """
+    value_columns = [c for c in ("min_value", "avg_value", "max_value") if c in df.columns]
+    if "avg_value" in df.columns and df.schema["avg_value"] == pl.String:
+        df = df.with_columns(
+            text_value=pl.when(pl.col("avg_value").cast(pl.Float64, strict=False).is_null())
+            .then(pl.col("avg_value"))
+        )
+    df = df.with_columns(
+        pl.col(c).cast(pl.Float64, strict=False) for c in value_columns if df.schema[c] == pl.String
+    )
+
+    lat_path, lon_path = "navigation.position.latitude", "navigation.position.longitude"
+    if "avg_value" in df.columns and {lat_path, lon_path} <= set(df["path"].unique().to_list()):
+
+        def part(path, name):
+            return df.filter(pl.col("path") == path).select(
+                "timestamp", pl.col("avg_value").alias(name)
+            )
+
+        merged = (
+            part(lat_path, "latitude")
+            .join(part(lon_path, "longitude"), on="timestamp")
+            .with_columns(path=pl.lit("navigation.position"))
+        )
+        df = pl.concat(
+            [df.filter(~pl.col("path").is_in([lat_path, lon_path])), merged],
+            how="diagonal_relaxed",
+        ).sort("timestamp", "path")
+    # Rebuild the strings once more: Pyodide's polars 1.33 panics ("capacity
+    # overflow") when strings made by the join and concat above, or by
+    # pl.lit, are handed on as Arrow, which DuckDB and the table view both do
+    return df.with_columns(pl.col(pl.String) + "")
 
 
 if __name__ == "__main__":

@@ -24,7 +24,9 @@ PATHS = [
     "navigation.speedOverGround",
     "navigation.courseOverGroundTrue",
     "navigation.position",
+    "navigation.datetime",
     "environment.wind.speedApparent",
+    "environment.forecast.description",
 ]
 
 # One row a minute for 5 minutes; the last speed is missing, as when a sensor
@@ -33,7 +35,11 @@ ROWS = {
     "navigation.speedOverGround": [2.0, 2.5, 3.0, 3.5, None],
     "navigation.courseOverGroundTrue": [1.0, 1.1, 1.2, 1.3, 1.4],
     "navigation.position": [{"latitude": 55.9 + i / 1000, "longitude": -4.9} for i in range(5)],
+    # GPS time as ISO text, as NMEA RMC sentences provide it
+    "navigation.datetime": [f"2026-07-01T12:0{i}:00.000Z" for i in range(5)],
     "environment.wind.speedApparent": [5.0, 6.0, 7.0, 8.0, 9.0],
+    # A text path the type rules don't know, so its schema says float64
+    "environment.forecast.description": ["fair", "fair", 3.5, "rain", None],
 }
 TIMESTAMPS = [START + timedelta(minutes=i) for i in range(5)]
 

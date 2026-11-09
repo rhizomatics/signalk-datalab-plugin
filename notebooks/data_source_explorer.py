@@ -5,8 +5,10 @@ app = marimo.App(width="full", app_title="SignalK Paths in Data Explorer with Ib
 
 with app.setup(hide_code=True):
     import marimo as mo
+    import altair as alt
     import json
     import os
+    from datetime import timedelta
 
     try:
         from pyodide.http import pyfetch
@@ -100,7 +102,8 @@ async def _(js, json, mo, pyfetch):
             "Last hour": "PT1H",
             "Last 6 hours": "PT6H",
             "Last 24 hours": "PT24H",
-            "Last 7 days": "P7D",
+            # The History API only takes time durations (PT...), not days
+            "Last 7 days": "PT168H",
         },
         value="Last hour",
         label="Duration",
@@ -224,6 +227,189 @@ def _(ibis_con, mo, namespace_input):
         tables,
         tanks,
     )
+
+
+@app.cell(hide_code=True)
+def _(ibis_con, mo):
+    # Number paths only: those are what the server can average, min or max
+    numeric_paths = {}
+    for _ns in ibis_con.list_tables():
+        for _name, _dtype in ibis_con.table(_ns).schema().items():
+            if _dtype.is_floating():
+                numeric_paths[_name.replace("__", ".")] = (_ns, _name)
+    _default = next(
+        (p for p in ("navigation.speedOverGround", "environment.wind.speedApparent") if p in numeric_paths),
+        next(iter(sorted(numeric_paths)), None),
+    )
+    request_path_input = mo.ui.dropdown(
+        options=sorted(numeric_paths), value=_default, label="Path", searchable=True
+    )
+    request_bucket_input = mo.ui.dropdown(
+        options={"Second": "s", "Minute": "m", "Hour": "h", "Day": "D"},
+        value="Minute",
+        label="Bucket",
+    )
+    request_stat_input = mo.ui.dropdown(
+        options={"Average": "mean", "Minimum": "min", "Maximum": "max", "First": "first", "Last": "last"},
+        value="Average",
+        label="Statistic",
+    )
+    mo.vstack([
+        mo.md(r"""
+        ---
+        ## From Ibis expression to History API request
+
+        An Ibis expression isn't run in the browser: `ibis-signalk` compiles it
+        into a History API request, and the SignalK server does the work. Time
+        filters become the request's time range, and grouping by a truncated
+        `timestamp` becomes its `resolution`, with the statistic as each path's
+        aggregation method. Only the summary comes back over the network.
+        """),
+        mo.hstack(
+            [request_path_input, request_bucket_input, request_stat_input],
+            justify="start",
+            gap="1.5rem",
+        ),
+    ])
+    return numeric_paths, request_bucket_input, request_path_input, request_stat_input
+
+
+@app.cell(hide_code=True)
+def _(
+    ibis_con,
+    mo,
+    numeric_paths,
+    request_bucket_input,
+    request_path_input,
+    request_stat_input,
+):
+    mo.stop(
+        request_path_input.value is None,
+        mo.callout(mo.md("No number paths reported in this duration."), kind="info"),
+    )
+    _ns, _col = numeric_paths[request_path_input.value]
+    _t = ibis_con.table(_ns)
+    _unit, _stat = request_bucket_input.value, request_stat_input.value
+    _expr = _t.group_by(bucket=_t.timestamp.truncate(_unit)).aggregate(
+        value=getattr(_t[_col], _stat)()
+    )
+    _params = ibis_con.compile(_expr).to_params()
+    _code = (
+        f'{_ns}.group_by(bucket={_ns}.timestamp.truncate("{_unit}")).aggregate(\n'
+        f"    value={_ns}.{_col}.{_stat}()\n)"
+    )
+    _request = "GET /signalk/v2/api/history/values\n" + "\n".join(
+        f"    {k}={v}" for k, v in _params.items()
+    )
+    try:
+        with mo.status.spinner(title="Asking the server…"):
+            _df = ibis_con.execute(_expr)
+    except Exception as _e:
+        mo.stop(True, mo.callout(mo.md(f"**Request failed**: {_e}"), kind="danger"))
+
+    _bucket_name = request_bucket_input.selected_key.lower()
+    _stat_name = request_stat_input.selected_key.lower()
+    _chart = (
+        alt.Chart(_df.dropna())
+        .mark_line(point=len(_df) <= 60)
+        .encode(
+            x=alt.X("bucket:T", title=None),
+            y=alt.Y("value:Q", title=f"{_stat_name} of {request_path_input.value}"),
+            tooltip=[alt.Tooltip("bucket:T", format="%d %b %H:%M:%S"), alt.Tooltip("value:Q", format=".4~f")],
+        )
+        .properties(height=220, width="container")
+    )
+    mo.vstack([
+        mo.hstack(
+            [
+                mo.vstack([mo.md("**This Ibis expression**"), mo.md(f"```python\n{_code}\n```")]),
+                mo.vstack([mo.md("**becomes this request**"), mo.md(f"```\n{_request}\n```")]),
+            ],
+            widths="equal",
+            gap="1.5rem",
+        ),
+        mo.md(
+            f"The server sent back **{len(_df):,}** rows, one per {_bucket_name}, having "
+            f"worked out each {_stat_name} itself. Values are in SignalK's SI units "
+            "(m/s, radians, Kelvin)."
+        ),
+        _chart,
+    ])
+    return
+
+
+@app.cell(hide_code=True)
+def _(duration_input, ibis_con, mo, namespace_input):
+    mo.stop(not namespace_input.value)
+    # Minute buckets for short durations, hours for longer ones, so the
+    # heatmap stays a readable width
+    _unit, _step = (
+        ("m", timedelta(minutes=1))
+        if duration_input.value in ("PT1H", "PT6H")
+        else ("h", timedelta(hours=1))
+    )
+    _rows = []
+    with mo.status.spinner(title="Checking which paths reported…"):
+        for _ns in namespace_input.value:
+            _t = ibis_con.table(_ns)
+            _columns = [c for c in _t.columns if c != "timestamp"]
+            if not _columns:
+                continue
+            # One request per namespace: the first value of every path in
+            # every bucket, picked by the server
+            _df = ibis_con.execute(
+                _t.group_by(bucket=_t.timestamp.truncate(_unit)).aggregate(
+                    **{c: _t[c].first() for c in _columns}
+                )
+            )
+            for _record in _df.to_dict("records"):
+                for _column in _columns:
+                    _value = _record[_column]
+                    if _value is not None and _value == _value:  # not None or NaN
+                        _start = _record["bucket"]
+                        _rows.append({
+                            "path": _column.replace("__", "."),
+                            "start": _start.isoformat(),
+                            "end": (_start + _step).isoformat(),
+                        })
+    mo.stop(not _rows, mo.callout(mo.md("Nothing reported in this duration."), kind="info"))
+
+    _paths = sorted({r["path"] for r in _rows})
+    _latest = max(r["start"] for r in _rows)
+    _quiet = sorted(
+        p for p in _paths if max(r["start"] for r in _rows if r["path"] == p) < _latest
+    )
+    _heatmap = (
+        alt.Chart(alt.Data(values=_rows))
+        .mark_rect(color="#1f77b4")
+        .encode(
+            x=alt.X("start:T", title=None),
+            x2="end:T",
+            y=alt.Y("path:N", title=None, sort=_paths),
+            tooltip=["path:N", alt.Tooltip("start:T", format="%d %b %H:%M", title="from")],
+        )
+        .properties(height=max(80, 16 * len(_paths)), width="container")
+    )
+    mo.vstack([
+        mo.md(
+            "---\n## Which instruments reported, and when\n\n"
+            f"Each bar is a {'minute' if _unit == 'm' else 'hour'} in which a path "
+            "reported at least once, across the namespaces chosen above, so gaps "
+            "show when a sensor or its connection dropped out. Each namespace is a "
+            "single request, with the server picking one value per path per bucket."
+        ),
+        _heatmap,
+        mo.callout(
+            mo.md(
+                "Quiet in the latest " + ("minute" if _unit == "m" else "hour") + ": "
+                + ", ".join(f"`{p}`" for p in _quiet)
+            ),
+            kind="warn",
+        )
+        if _quiet
+        else mo.md("Every path reported in the latest bucket."),
+    ])
+    return
 
 
 if __name__ == "__main__":

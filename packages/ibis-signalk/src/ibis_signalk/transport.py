@@ -39,7 +39,8 @@ class SignalKTransport:
             path_to_column_name(v["path"]) for v in payload["values"]
         ]
         paths = req.paths or [v["path"] for v in payload["values"]]
-        arrow_types = [path_to_ibis_type(p.split(":")[0]).to_pyarrow() for p in paths]
+        ibis_types = [path_to_ibis_type(p.split(":")[0]) for p in paths]
+        arrow_types = [t.to_pyarrow() for t in ibis_types]
         timestamp_name = req.timestamp_name
         data: list[list] = payload["data"]
 
@@ -57,10 +58,22 @@ class SignalKTransport:
         )
 
         arrays = [ts_col]
-        for i, arrow_type in enumerate(arrow_types):
-            raw = transposed[i + 1]
-            if pa.types.is_string(arrow_type):
-                raw = [None if v is None else json.dumps(v) for v in raw]
-            arrays.append(pa.array(raw, type=arrow_type))
+        for i, (ibis_type, arrow_type) in enumerate(zip(ibis_types, arrow_types)):
+            arrays.append(pa.array(_cells(transposed[i + 1], ibis_type), type=arrow_type))
 
         return pa.table(dict(zip([timestamp_name] + columns, arrays)))
+
+
+def _cells(raw, ibis_type) -> list:
+    """One column's values, made to fit the type declared for its path.
+
+    Types come from path names, so a path can return something other than its
+    declared type, e.g. text from a path the rules in datatypes.py don't know.
+    A numeric column keeps numbers, with booleans (switches) as 1.0 and 0.0,
+    and makes anything else null rather than failing the whole table.
+    """
+    if ibis_type.is_json():
+        return [None if v is None else json.dumps(v) for v in raw]
+    if ibis_type.is_string():
+        return [None if v is None else v if isinstance(v, str) else json.dumps(v) for v in raw]
+    return [float(v) if isinstance(v, (int, float)) else None for v in raw]

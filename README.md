@@ -6,12 +6,13 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/rhizomatics/signalk-datalab-plugin/blob/main/LICENSE)
 [![boat tech directory](https://boat-tech-directory.rhizomatics.org.uk/images/badge.svg)](https://boat-tech-directory.rhizomatics.org.uk) [![managed by hq](https://raw.githubusercontent.com/rhizomatics/hq/main/assets/badge-managed-by-hq.svg)](https://github.com/rhizomatics/hq)
 
-Data notebooks, using [Marimo](https://marimo.io) and Python for DAG aware notebooks. Notebooks run [entirely in the browser](https://docs.marimo.io/guides/wasm/), using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
+This plugin offers a variety of **Data Notebooks**, using [Marimo](https://marimo.io) and Python. Notebooks run [entirely in the browser](https://docs.marimo.io/guides/wasm/), using WebAssembly (WASM) to keep the server load minimal and best suited to Raspberry Pi, NanoPi etc servers.
 
 It comes with several _experiments_, working notebooks that use different ways to pull selected paths out of the SignalK History API and demonstration of how the data can be tabluated, charted or otherwise analyzed.
 
-> [!TIP]
-> Notebooks start much faster when the SignalK server has a secure (`https`) address. Over plain `http` they still work, but start up slower in every browser. See [HTTPS or HTTP](#https-or-http).
+> [!NOTE]
+> **Why Marimo and not Jupyter?**
+> Marimo has notebooks that are pure Python scripts, and DAG-aware. The 'DAG' here refers to a 'directed acyclic graph', and in simple terms means it works out which cells are stale and need to be recalcuated because cells they depend on have changed - like Excel does.
 
 ![Notebook Gallery](assets/screenshots/gallery.png)
 
@@ -25,6 +26,9 @@ The page then moves itself to the plugin's own address, `/plugins/signalk-datala
 You'll need a _History Provider_ running to capture the SignalK data, such as **signalk-parquet**, **signalk-to-influxdb2** or **signalk-questdb**. If you have **Kip** set up as a plotter, it can also act as a history provider. Without one of these, there's nothing to be queried for data, only raw data files.
 
 ### HTTPS or HTTP
+
+> [!TIP]
+> Notebooks start much faster when the SignalK server has a secure (`https`) address. Over plain `http` they still work, but start up slower in every browser. See [HTTPS or HTTP](#https-or-http). If you are using `http`, Chrome or Firefox is usually faster than Safari.
 
 The notebooks run Python in the browser in a background worker. To share memory with that worker quickly, the browser has to put the page in _cross-origin isolation_. Data Lab sends the headers that ask for it (`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`), but browsers only honour them on a secure address: `https://...`, or `http://localhost`.
 
@@ -51,16 +55,40 @@ If you're familiar with Jupyter, you'll feel at home, although Marimo Notebooks 
 
 SignalK has several _simulator_ plugins that will generate navigation, environment and similar data. Its also easy to source real live weather data using plugins.
 
+For testing, we recommend [SKsim](https://www.npmjs.com/package/sksim), installed from the App Store. It sends a live stream of position, speed, engine, depth and similar data, which a history provider records as it arrives, so the notebooks get history to work with. Start it from its **Web Apps** page. It can also follow a GPX track at the pace you set, such as the demo passage from the **Geospatial Passage** notebook's **Download GPX**.
+
+> [!NOTE]
+> Pasting recorded data such as NMEA sentences into the server's **Data Fiddler** doesn't build up history: the server takes it all in at once, and history providers record it at a single moment.
+
 ## Pure Polars
 
 The **Analyze with Polars Dataframes** notebook uses [Polars](https://docs.pola.rs) (a modern Rust based iteration on `pandas`) to do all of the SignalK API integration and data manipulation.
+
+> [!NOTE]
+> Don't confuse "Polars Dataframes" with performance polars for a boat. The Dataframes library has a Polar Bear logo to help you remember, and there's a real _Performance Polars Notebook_ to play with.
 
 ## Integrate with Ibis Framework
 
 The **SignalK Paths in Data Explorer with Ibis** notebook, linked from the top of Data Lab, connects [Ibis](https://ibis-project.org) to the History API when it opens. You can then query SignalK data with Ibis expressions and browse it in marimo's data browser. It takes a few seconds to load the first time.
 
+It also shows what makes Ibis useful here:
+
+- **From Ibis expression to History API request**: pick a path, a time bucket and a statistic, and see the Ibis expression, the History API request it compiles to, and the result. The SignalK server works out the summary, so only one row per bucket crosses the network.
+- **Which instruments reported, and when**: a heatmap of every path in the chosen namespaces against time, so you can see when a sensor or its connection dropped out, with a warning for any that have gone quiet.
+
+![SignalK Data in Notebook Data Explorer](assets/screenshots/data_explorer.png)
+
+## Performance Polar
+
+The **Performance Polar** notebook builds a polar diagram from your own sailing: boat speed at each true wind angle, for each band of true wind speed, from per-minute summaries the server works out through Ibis. It shows the best angles for VMG upwind and downwind, and downloads the polar as a `.pol` table for OpenCPN's weather routing and other routing software. It needs true wind (`environment.wind.angleTrueWater` and `environment.wind.speedTrue`, as the derived-data plugin calculates them) and boat speed. **Demo data** shows a made-up season on a 36 ft cruiser.
+
+> [!NOTE]
+> Time under engine isn't excluded, so it shows as fast sailing; choose durations that are mostly sailing.
+
 > [!WARNING]
 > Histograms aren't shown in the data browser for SignalK tables by default. Column stats (counts, missing values, min/max, averages) work, but the charts that need histograms are left out. To turn them on, install `duckdb` from marimo's package manager panel; it's a sizeable download. Overall figures cover the last hour unless you filter on `timestamp`.
+
+![Example Generated Polar](assets/screenshots/polar_diagram.png)
 
 ## Export with signalk-cli
 
@@ -68,6 +96,8 @@ The **Analyze and Export with signalk-cli** notebook, linked from the top of Dat
 
 > [!NOTE]
 > It installs `signalk-cli` when it opens, which takes a few seconds the first time.
+
+![Quick Analysis Panel](assets/screenshots/quick_analysis.png)
 
 ## SQL with DuckDB
 
