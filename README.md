@@ -131,15 +131,25 @@ The **Add Your Own Notebook** explains how to save your own notebooks for reuse,
 
 ### Using an AI agent
 
-Marimo's **External agents** feature (a Labs feature, turned on in marimo's settings) can connect Claude Code, Codex, Gemini or OpenCode to the notebook in the browser. It needs a terminal command to start a bridge, so it's aimed at technical users for now:
+Marimo notebooks have lots of different ways of integrating with AI models, including[In Editor AI Support](https://docs.marimo.io/guides/editor_features/ai_completion/) and a [`marimo pair`](https://docs.marimo.io/guides/generate_with_ai/marimo_pair/) mode.
+
+Marimo's **External agents** feature (a Labs feature, turned on in marimo's _User Settings_ as "External Agents") can connect a local Claude Code, Codex, Gemini or OpenCode to the notebook in the browser, and doesn't need its own API Key. It does need a terminal command to start a bridge, so it's aimed at technical users for now:
+
+![User Settings](assets/screenshots/user_settings.png)
+
+This command runs an ACP server, then wires its `stdin`/`stdout` to a websocket on a port that an ACP client, such as runs inside Marimo expects.
 
 ```bash
 npx stdio-to-ws "npx @zed-industries/claude-code-acp" --port 3017
 ```
 
+Once that's run, click on the little robot on the left hand bar, and then on the _Agents_ tab.
+
+![Agent Connected](assets/screenshots/claude_connected.png)
+
 The notebook connects to the bridge on the same host name it was loaded from (`ws://<host>:3017`). If you open Data Lab from another machine, e.g. `http://my-boat.local:3000`, the bridge has to run on the SignalK server, with Node and a logged-in Claude Code there. You may see file system errors when the agent tries to read or write files, as the browser notebook has no files on disk for it to work with.
 
-For a fuller setup, where the agent edits the notebook file and can see its live outputs, see [Working with an AI agent](#working-with-an-ai-agent) under Development.
+For a fuller setup, where the agent edits the notebook file and can see its live outputs using a clone of this git repository, see [Working with an AI agent](#working-with-an-ai-agent) under Development.
 
 ## Development
 
@@ -217,6 +227,12 @@ The notebooks are plain Python files, so any coding agent can edit them. The rep
 Project settings in [.claude/](.claude/) run `marimo check` after every notebook edit and feed any problems back to Claude. [notebooks/CLAUDE.md](notebooks/CLAUDE.md) covers marimo's rules and what works in the browser (WASM) build.
 
 `npm run agent` turns off marimo's access token so the MCP URL stays the same between runs. It only listens on localhost, but don't run it on a shared machine.
+
+### Optional Dependencies
+
+The Marimo settings menu offers a way to load more common packages quickly using `uv`
+
+![Optional Dependencies](assets/screenshots/optional_dependencies.png)
 
 ### Release
 
