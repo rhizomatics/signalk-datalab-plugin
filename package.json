@@ -24,6 +24,7 @@
     "url": "git+https://github.com/rhizomatics/signalk-datalab-plugin.git"
   },
   "files": [
+    "agent/",
     "assets/",
     "dist/",
     "public/",
@@ -45,6 +46,7 @@
     "docs:dev": "npm --prefix site run dev",
     "test": "tsc && node --test test/*.test.js",
     "coverage": "tsc && node --test --experimental-test-coverage --test-coverage-include=dist/** test/*.test.js",
+    "bridge": "cd agent && npx stdio-to-ws \"npx @zed-industries/claude-code-acp\" --port 3017",
     "agent": "uv run --with-requirements requirements.txt --with \"marimo[mcp]\" marimo edit notebooks/signalk.py --watch --mcp --no-token --port 2718",
     "lab": "uv run --project packages/ibis-signalk --with-requirements requirements.txt --with \"signalk-cli>=3.0.0\" marimo edit . --watch",
     "build:wheel": "node scripts/build-wheel.js",

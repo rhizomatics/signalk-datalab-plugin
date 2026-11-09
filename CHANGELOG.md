@@ -3,6 +3,12 @@
 
 # v0.7.0 - Nov 2026
 
+## ✨ Enhancements
+
+- Every notebook opens with its code hidden, so the introduction and the **Fetch** controls are easy to find; open any cell to see or edit its code
+- New **Performance Polar** notebook: a polar diagram of boat speed against true wind angle and speed from your own sailing, the best VMG angles upwind and downwind, and a `.pol` download for OpenCPN and other routing software, with demo data to try it out
+- **SignalK Paths in Data Explorer with Ibis** shows the History API request each Ibis expression compiles to, with the server-side summary charted, and a heatmap of which instruments reported when
+
 ## 🐛 Bug fixes
 
 - **SignalK Paths in Data Explorer with Ibis** failed to open in v0.6.0 ("Can't find a pure Python 3 wheel for 'pyarrow>=26.0.0'"): `ibis-signalk` 0.1.4 asks for no newer pyarrow and altair than the browser's Python (Pyodide) provides, and again requires `pyarrow-hotfix`, which ibis imports even though it does nothing on current pyarrow ("No module named 'pyarrow_hotfix'")
@@ -11,11 +17,9 @@
 - Positions from history providers that store them as two paths, `navigation.position.latitude` and `navigation.position.longitude`, now load in the signalk-cli, DuckDB and **Geospatial Passage** notebooks, instead of showing no position data
 - **SignalK Paths in Data Explorer with Ibis**: "Last 7 days" now works with servers that only accept time durations
 
-## ✨ Enhancements
+## 📚 Documentation
 
-- Every notebook opens with its code hidden, so the introduction and the **Fetch** controls are easy to find; open any cell to see or edit its code
-- New **Performance Polar** notebook: a polar diagram of boat speed against true wind angle and speed from your own sailing, the best VMG angles upwind and downwind, and a `.pol` download for OpenCPN and other routing software, with demo data to try it out
-- **SignalK Paths in Data Explorer with Ibis** shows the History API request each Ibis expression compiles to, with the server-side summary charted, and a heatmap of which instruments reported when
+- Documentation re-organized, with improved AI agent instructions and screenshots
 - SKsim recommended in the README for test data
 
 # v0.6.0 - Nov 2026
@@ -47,6 +51,9 @@ Release v0.25.2 of Marimo adds geospatial support
 ## ✨ Enhancements
 
 - On SignalK server 2.31 or later, read-only users can open Data Lab from the plugin's own address (`/plugins/signalk-datalab-plugin/ui`), which sends the headers notebooks need to start quickly. Opening Data Lab from the **Webapps** menu now moves there automatically when it can.
+
+## 📚 Documentation
+
 - Documented the effect of `http` versus `https` on notebook start-up
 
 ## 🔧 Maintenance

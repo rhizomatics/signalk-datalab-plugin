@@ -60,14 +60,16 @@ For testing, we recommend [SKsim](https://www.npmjs.com/package/sksim), installe
 > [!NOTE]
 > Pasting recorded data such as NMEA sentences into the server's **Data Fiddler** doesn't build up history: the server takes it all in at once, and history providers record it at a single moment.
 
-## Pure Polars
+## Experimental Notebooks
+
+### Pure Polars
 
 The **Analyze with Polars Dataframes** notebook uses [Polars](https://docs.pola.rs) (a modern Rust based iteration on `pandas`) to do all of the SignalK API integration and data manipulation.
 
 > [!NOTE]
 > Don't confuse "Polars Dataframes" with performance polars for a boat. The Dataframes library has a Polar Bear logo to help you remember, and there's a real _Performance Polars Notebook_ to play with.
 
-## Integrate with Ibis Framework
+### Integrate with Ibis Framework
 
 The **SignalK Paths in Data Explorer with Ibis** notebook, linked from the top of Data Lab, connects [Ibis](https://ibis-project.org) to the History API when it opens. You can then query SignalK data with Ibis expressions and browse it in marimo's data browser. It takes a few seconds to load the first time.
 
@@ -78,9 +80,9 @@ It also shows what makes Ibis useful here:
 
 ![SignalK Data in Notebook Data Explorer](assets/screenshots/data_explorer.png)
 
-## Performance Polar
+### Performance Polars
 
-The **Performance Polar** notebook builds a polar diagram from your own sailing: boat speed at each true wind angle, for each band of true wind speed, from per-minute summaries the server works out through Ibis. It shows the best angles for VMG upwind and downwind, and downloads the polar as a `.pol` table for OpenCPN's weather routing and other routing software. It needs true wind (`environment.wind.angleTrueWater` and `environment.wind.speedTrue`, as the derived-data plugin calculates them) and boat speed. **Demo data** shows a made-up season on a 36 ft cruiser.
+The **Performance Polars** notebook builds a polar diagram from your own sailing: boat speed at each true wind angle, for each band of true wind speed, from per-minute summaries the server works out through Ibis. It shows the best angles for VMG upwind and downwind, and downloads the polar as a `.pol` table for OpenCPN's weather routing and other routing software. It needs true wind (`environment.wind.angleTrueWater` and `environment.wind.speedTrue`, as the derived-data plugin calculates them) and boat speed. **Demo data** shows a made-up season on a 36 ft cruiser.
 
 > [!NOTE]
 > Time under engine isn't excluded, so it shows as fast sailing; choose durations that are mostly sailing.
@@ -90,7 +92,7 @@ The **Performance Polar** notebook builds a polar diagram from your own sailing:
 
 ![Example Generated Polar](assets/screenshots/polar_diagram.png)
 
-## Export with signalk-cli
+### Export with signalk-cli
 
 The **Analyze and Export with signalk-cli** notebook, linked from the top of Data Lab, fetches history into a polars DataFrame with the [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python API, and charts how much the boat's position moved in each 15 minutes. You can also download the data as Feather or CSV, in the same format as the `signalk-cli` command line tool. Paths can be glob or regex patterns, e.g. `navigation.*`.
 
@@ -99,14 +101,14 @@ The **Analyze and Export with signalk-cli** notebook, linked from the top of Dat
 
 ![Quick Analysis Panel](assets/screenshots/quick_analysis.png)
 
-## SQL with DuckDB
+### SQL with DuckDB
 
 The **SQL with DuckDB** notebook fetches history into a `signalk_history` table and queries it with SQL cells running [DuckDB](https://duckdb.org) in the browser. Worked examples cover time bucketing, `PIVOT`, window functions for distance run, and `ASOF JOIN` to line up sensors that report at different rates. It can also query an uploaded CSV or Parquet file.
 
 > [!NOTE]
 > DuckDB and the packages marimo loads alongside it are about 28 MB, so the first visit takes a while. The other notebooks don't load DuckDB.
 
-## Live Stream With signalk-cli
+### Live Stream With signalk-cli
 
 The **Live Stream With signalk-cli** notebook subscribes to the SignalK delta stream and shows data as it arrives: a chart per path, redrawn every few seconds, and a table of the latest values. It uses the browser's own WebSocket, since signalk-cli's streaming client waits for each message in a way that would block the rest of the notebook in the browser. signalk-cli still builds the subscription and reads the messages. Only data received while the page is open is shown.
 
@@ -114,7 +116,7 @@ Each notebook's opening cell lists the limitations of its approach.
 
 ![Streaming Wind Gusts](assets/screenshots/stream_gusts.png)
 
-## Geospatial Passage
+### Geospatial Passage
 
 The **Geospatial Passage** notebook turns `navigation.position` history into a passage log. It splits the track into legs under way and stops at anchor or alongside, with each stop's swing circle, and maps them over OpenStreetMap with [OpenSeaMap](https://www.openseamap.org) seamarks. Selecting legs or stops in the tables picks them out on the map. The tables are [GeoPandas](https://geopandas.org) GeoDataFrames, so marimo's download button offers GeoJSON and GeoParquet, for QGIS, Google Earth, Felt or geojson.io. There's also a GPX download for OpenCPN and chart plotters.
 
@@ -125,11 +127,13 @@ Without any history, choose **Demo passage** for a made-up day on the Firth of C
 
 ![Geospatial Example](assets/screenshots/geospatial.png)
 
-## Add Your Own Notebook
+### Add Your Own Notebook
 
 The **Add Your Own Notebook** explains how to save your own notebooks for reuse, within the more confining environment of client-side only Marimo.
 
-### Using an AI agent
+## AI Integration
+
+### Connecting to Agents from Notebooks
 
 Marimo notebooks have lots of different ways of integrating with AI models, including[In Editor AI Support](https://docs.marimo.io/guides/editor_features/ai_completion/) and a [`marimo pair`](https://docs.marimo.io/guides/generate_with_ai/marimo_pair/) mode.
 
@@ -137,43 +141,58 @@ Marimo's **External agents** feature (a Labs feature, turned on in marimo's _Use
 
 ![User Settings](assets/screenshots/user_settings.png)
 
-This command runs an ACP server, then wires its `stdin`/`stdout` to a websocket on a port that an ACP client, such as runs inside Marimo expects.
+This command runs an ACP server, then wires its `stdin`/`stdout` to a websocket on a port that an ACP client, such as runs inside Marimo expects. Run it from the plugin's `agent` directory, whose `CLAUDE.md` tells Claude how to find the notebook in the browser and what works there:
 
 ```bash
+cd ~/.signalk/node_modules/@rhizomatics/signalk-datalab-plugin/agent
 npx stdio-to-ws "npx @zed-industries/claude-code-acp" --port 3017
 ```
+
+From a clone of this repo, `npm run bridge` does the same.
 
 Once that's run, click on the little robot on the left hand bar, and then on the _Agents_ tab.
 
 ![Agent Connected](assets/screenshots/claude_connected.png)
 
-The notebook connects to the bridge on the same host name it was loaded from (`ws://<host>:3017`). If you open Data Lab from another machine, e.g. `http://my-boat.local:3000`, the bridge has to run on the SignalK server, with Node and a logged-in Claude Code there. You may see file system errors when the agent tries to read or write files, as the browser notebook has no files on disk for it to work with.
+The notebook connects to the bridge on the same host name it was loaded from (`ws://<host>:3017`). If you open Data Lab from another machine, e.g. `http://my-boat.local:3000`, the bridge has to run on the SignalK server, with Node and a logged-in Claude Code there. The agent can read the notebook open in the browser, but changes it writes there don't show up in the open notebook, so it gives you the code for each cell to paste in.
 
-For a fuller setup, where the agent edits the notebook file and can see its live outputs using a clone of this git repository, see [Working with an AI agent](#working-with-an-ai-agent) under Development.
+For a fuller setup, where the agent edits the notebook file and can see its live outputs using a clone of this git repository, see [Developing with an AI agent](#developing-with-an-ai-agent) under Development.
 
-## Development
+### Developing with an AI agent
 
-Development environment requirements.
+> [!NOTE]
+> This setup is for developers working from a clone of this repo. For connecting an agent to the notebook launched from the SignalK **Webapps** panel, see [Connecting to Agents from Notebooks](#connecting-to-agents-from-notebooks).
 
-### Linux Packages
+The notebooks are plain Python files, so any coding agent can edit them. The repo is set up for [Claude Code](https://claude.com/claude-code), which can also see the live notebook's outputs and errors.
 
-- node
-- librsvg2-bin
+1. Start the notebook with its agent connection enabled, pointing at your SignalK server:
 
-#### Also recommended
+   ```bash
+   SIGNALK_URL=http://my-boat.local:3000 npm run agent
+   ```
 
-- [signalk-cli](https://signalk-cli.rhizomatics.org.uk) Python CLI for exploring and extracting streaming and history daya
+   This opens the notebook for editing on http://localhost:2718, reloads it whenever the file changes on disk, and serves a marimo MCP server at http://localhost:2718/mcp/server.
 
-### Local Execution
+2. In another terminal in the repo, start Claude Code with `claude`. The MCP server is registered in [.mcp.json](.mcp.json), so the first time you'll be asked to approve the `marimo` server. Run `/mcp` to check it's connected.
+
+3. Ask for changes in plain language, e.g. _"add a chart of wind speed against boat speed"_. Claude edits `notebooks/signalk.py`, the browser tab updates, and Claude can read back cell outputs and errors from the running notebook.
+
+Project settings in [.claude/](.claude/) run `marimo check` after every notebook edit and feed any problems back to Claude. [notebooks/CLAUDE.md](notebooks/CLAUDE.md) covers marimo's rules and what works in the browser (WASM) build.
+
+`npm run agent` turns off marimo's access token so the MCP URL stays the same between runs. It only listens on localhost, but don't run it on a shared machine.
+
+## Local Execution
 
 To run the notebook outside of SignalK / webbrowser context, use
 
 ```bash
 uv venv .venv
 source .venv/bin/activate
-uv pip install -r requirements.txt
+uv sync --dev
 marimo run notebooks/signalk.py
 ```
+
+`mise` is recommended for installing node, Python, etc but isn't a requirement.
 
 To work on both the main notebook and the [ibis-signalk](packages/ibis-signalk) `dev.py` notebook from one marimo server, use
 
@@ -183,7 +202,7 @@ SIGNALK_URL=http://my-boat.local:3000 npm run lab
 
 marimo's home page lists both notebooks, and the environment has the packages each one needs.
 
-#### Ibis and DuckDB
+## Ibis and DuckDB
 
 The `ibis-signalk` backend runs what it can on the SignalK server and computes simple overall figures (counts, sums, min/max, averages) locally with pyarrow. Queries beyond that, notably the histograms marimo's data browser draws and any joins, need a local query engine, which comes from the optional DuckDB extra (`ibis-signalk[duckdb]`).
 
@@ -205,30 +224,7 @@ SIGNALK_URL=http://my-boat.local:3000 npm run preview
 
 This builds `public/` and serves it on http://localhost:8080 (override with `PORT`), proxying `/signalk/*` API calls to `SIGNALK_URL` (default `http://localhost:3000`). Use `npm run preview:serve` to skip the rebuild.
 
-### Working with an AI agent
-
-> [!NOTE]
-> This setup is for developers working from a clone of this repo. For connecting an agent to the notebook launched from the SignalK **Webapps** panel, see [Using an AI agent (advanced)](#using-an-ai-agent-advanced).
-
-The notebooks are plain Python files, so any coding agent can edit them. The repo is set up for [Claude Code](https://claude.com/claude-code), which can also see the live notebook's outputs and errors.
-
-1. Start the notebook with its agent connection enabled, pointing at your SignalK server:
-
-   ```bash
-   SIGNALK_URL=http://my-boat.local:3000 npm run agent
-   ```
-
-   This opens the notebook for editing on http://localhost:2718, reloads it whenever the file changes on disk, and serves a marimo MCP server at http://localhost:2718/mcp/server.
-
-2. In another terminal in the repo, start Claude Code with `claude`. The MCP server is registered in [.mcp.json](.mcp.json), so the first time you'll be asked to approve the `marimo` server. Run `/mcp` to check it's connected.
-
-3. Ask for changes in plain language, e.g. _"add a chart of wind speed against boat speed"_. Claude edits `notebooks/signalk.py`, the browser tab updates, and Claude can read back cell outputs and errors from the running notebook.
-
-Project settings in [.claude/](.claude/) run `marimo check` after every notebook edit and feed any problems back to Claude. [notebooks/CLAUDE.md](notebooks/CLAUDE.md) covers marimo's rules and what works in the browser (WASM) build.
-
-`npm run agent` turns off marimo's access token so the MCP URL stays the same between runs. It only listens on localhost, but don't run it on a shared machine.
-
-### Optional Dependencies
+### Other Optional Dependencies
 
 The Marimo settings menu offers a way to load more common packages quickly using `uv`
 
