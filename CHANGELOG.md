@@ -1,12 +1,23 @@
 > [!TIP]
 > For the Marimo notebooks, see their [Release Notes](https://github.com/marimo-team/marimo/releases)
 
+# v0.7.1 - Nov 2026
+
+## 🐛 Bug fixes
+
+- **SQL with DuckDB** crashed in Safari as soon as it ran ("Pyodide has suffered a fatal error ... basic_string", then "RPC request timed out"). The quarter-hour `PIVOT` now has its own cell: when it followed another statement in the same SQL cell, DuckDB threw an error while marimo read the SQL, which Chrome recovers from but Safari doesn't
+- **SignalK Paths in Data Explorer with Ibis** and **Performance Polars** failed to install `ibis-signalk` in v0.7.0, as the plugin package was missing the wheel it serves them (`/wheels/index.json` not found)
+
+## 📚 Documentation
+
+- Corrected what HTTPS gives the notebooks: over plain `http` they work the same, but a running cell can't be interrupted. HTTP isn't what makes a first visit slow; downloading Python and the packages is
+
 # v0.7.0 - Nov 2026
 
 ## ✨ Enhancements
 
 - Every notebook opens with its code hidden, so the introduction and the **Fetch** controls are easy to find; open any cell to see or edit its code
-- New **Performance Polar** notebook: a polar diagram of boat speed against true wind angle and speed from your own sailing, the best VMG angles upwind and downwind, and a `.pol` download for OpenCPN and other routing software, with demo data to try it out
+- New **Performance Polars** notebook: a polar diagram of boat speed against true wind angle and speed from your own sailing, the best VMG angles upwind and downwind, and a `.pol` download for OpenCPN and other routing software, with demo data to try it out
 - **SignalK Paths in Data Explorer with Ibis** shows the History API request each Ibis expression compiles to, with the server-side summary charted, and a heatmap of which instruments reported when
 
 ## 🐛 Bug fixes

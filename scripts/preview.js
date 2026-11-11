@@ -13,7 +13,7 @@ const client = target.protocol === "https:" ? https : http;
 
 const web = express();
 
-// Required for Pyodide/marimo's SharedArrayBuffer-based worker RPC; see the
+// Cross-origin isolation, which marimo needs to interrupt a running cell; see the
 // matching comment in src/index.ts.
 web.use((_req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");

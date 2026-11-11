@@ -28,18 +28,17 @@ You'll need a _History Provider_ running to capture the SignalK data, such as **
 ### HTTPS or HTTP
 
 > [!TIP]
-> Notebooks start much faster when the SignalK server has a secure (`https`) address. Over plain `http` they still work, but start up slower in every browser. See [HTTPS or HTTP](#https-or-http). If you are using `http`, Chrome or Firefox is usually faster than Safari.
+> Notebooks work over plain `http` as well as `https`. With a secure (`https`) address you can also stop a long-running cell. See [HTTPS or HTTP](#https-or-http).
 
-The notebooks run Python in the browser in a background worker. To share memory with that worker quickly, the browser has to put the page in _cross-origin isolation_. Data Lab sends the headers that ask for it (`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`), but browsers only honour them on a secure address: `https://...`, or `http://localhost`.
+The notebooks run Python in the browser in a background worker. To stop a cell while it's running, marimo needs memory shared with that worker, which the browser only allows when the page is in _cross-origin isolation_. Data Lab sends the headers that ask for it (`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`), but browsers only honour them on a secure address: `https://...`, or `http://localhost`.
 
-On a plain `http` address, such as `http://10.0.0.5` or `http://openplotter.local:3000`, the browser ignores those headers. The notebooks still work, but:
+On a plain `http` address, such as `http://10.0.0.5` or `http://openplotter.local:3000`, the browser ignores those headers. The notebooks work the same, except that a running cell can't be interrupted, and the browser console shows "interrupts are not available".
 
-- startup is slower, and the browser console may show RPC timeout errors while the worker catches up
-- Safari (iPad, iPhone, Mac) is the slowest to start, and occasionally needs a reload
+The first visit to a notebook is slow whichever address you use: the browser downloads Python and the notebook's packages (about 28 MB for DuckDB and its dependencies) from the internet, then keeps them for next time.
 
-To check, open the browser's developer console on a Data Lab page and type `crossOriginIsolated`. `true` means the fast path is in use.
+To check, open the browser's developer console on a Data Lab page and type `crossOriginIsolated`. `true` means interrupts are available.
 
-Ways to get the fast path:
+Ways to get it:
 
 - **Switch on `ssl` in the SignalK server settings.** SignalK then serves `https` with a self-signed certificate, and redirects `http` links to it. Each device shows a certificate warning, which you accept once, until you set up a proper certificate. This works for every browser.
 - **Chrome or Edge on a single device:** in `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, add the server's address (e.g. `http://10.0.0.5`) and relaunch the browser. This affects only that browser, and has no equivalent in Safari.

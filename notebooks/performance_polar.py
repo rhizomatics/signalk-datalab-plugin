@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.25.2"
-app = marimo.App(width="full", app_title="Performance Polar")
+app = marimo.App(width="full", app_title="Performance Polars")
 
 with app.setup(hide_code=True):
     import marimo as mo
@@ -58,9 +58,9 @@ with app.setup(hide_code=True):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    # Performance Polar
+    # Performance Polars
 
-    Build a polar diagram from your own sailing: how fast the boat goes at
+    Build a [polar diagram](https://www.boatpolars.com/learn/what-is-a-polar-diagram) from your own sailing: how fast the boat goes at
     each true wind angle and wind speed, taken from SignalK history with
     [Ibis](https://ibis-project.org), with the server summarising each minute.
     See the best angles to sail upwind and downwind, and download the polar

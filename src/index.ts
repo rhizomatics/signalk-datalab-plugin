@@ -36,10 +36,12 @@ module.exports = function (app: ServerAPI): Plugin {
       // startup timeout.
       router.use(compression({ filter: (req) => !IMMUTABLE_DIR_PATTERN.test(req.path) }));
 
-      // Pyodide/marimo check self.crossOriginIsolated and fall back to a
-      // slower, single-threaded path (or hang waiting on the worker RPC) if
-      // it's false. These headers are what turn it on; the browser won't
-      // grant SharedArrayBuffer without them, regardless of origin.
+      // With these headers, a page served over HTTPS (or from localhost) is
+      // cross-origin isolated, which gives marimo the SharedArrayBuffer it
+      // uses to interrupt a running cell. Without isolation, marimo only
+      // logs "interrupts are not available" and otherwise works normally.
+      // Browsers never isolate a plain-HTTP page on another host (such as
+      // http://boat.local:3000), so there these headers have no effect.
       router.use((_req, res, next) => {
         res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
         res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
