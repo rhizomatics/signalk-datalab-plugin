@@ -205,7 +205,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(signalk_history):
-    quarter_hours = mo.sql(
+    quarter_hour_averages = mo.sql(
         f"""
         CREATE OR REPLACE TEMP TABLE quarter_hour_averages AS
         SELECT
@@ -214,8 +214,17 @@ def _(signalk_history):
             avg(avg_value) AS avg_value
         FROM signalk_history
         WHERE avg_value IS NOT NULL
-        GROUP BY ALL;
+        GROUP BY ALL
+        """,
+        output=False,
+    )
+    return (quarter_hour_averages,)
 
+
+@app.cell(hide_code=True)
+def _(quarter_hour_averages):
+    quarter_hours = mo.sql(
+        f"""
         PIVOT quarter_hour_averages
         ON path
         USING avg(avg_value)
