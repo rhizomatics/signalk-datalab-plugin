@@ -9,6 +9,9 @@ const outDir = path.join(root, "public", "wheels");
 
 fs.rmSync(outDir, { recursive: true, force: true });
 execFileSync("uv", ["build", "--wheel", "--out-dir", outDir, path.join(root, "packages", "ibis-signalk")], { stdio: "inherit" });
+// uv build drops a "*" .gitignore into the out dir, and npm pack honours
+// nested .gitignore files, so without this the wheel never reaches the package
+fs.rmSync(path.join(outDir, ".gitignore"), { force: true });
 
 const wheels = fs.readdirSync(outDir).filter((f) => f.endsWith(".whl"));
 fs.writeFileSync(path.join(outDir, "index.json"), JSON.stringify({ "ibis-signalk": wheels[0] }));
