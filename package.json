@@ -64,7 +64,7 @@
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.2",
-    "oxfmt": "^0.74.0",
+    "oxfmt": "^0.77.0",
     "oxlint": "^1.85.0",
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^5.9.3"
