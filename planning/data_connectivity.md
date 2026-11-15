@@ -7,7 +7,7 @@ transformation of data from History API to DuckDb native store.
 
 Storage will be in memory, since predicate push down means filtering and summation happens on server-side, and data volumes expected to in the low 10s of MB.
 
-## Test Environment
+## Test Environment
 
 SignalK History API at http://10.36.10.20/signalk/v2/api/history
 
