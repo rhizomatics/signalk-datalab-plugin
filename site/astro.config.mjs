@@ -49,6 +49,13 @@ function readmeSidebar() {
   return build(0, 2);
 }
 
+// Page views: GoatCounter, cookieless, so no consent banner (hq policies/project_standards.md). Only in the
+// GitHub Actions build that publishes the site, so local builds and previews aren't counted.
+const goatcounterHead =
+  process.env.GITHUB_ACTIONS === "true"
+    ? [{ tag: "script", attrs: { "data-goatcounter": "https://signalk-datalab.goatcounter.com/count", async: true, src: "//gc.zgo.at/count.js" } }]
+    : [];
+
 export default defineConfig({
   site: "https://signalk-datalab.rhizomatics.org.uk",
   markdown: {
@@ -58,6 +65,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "SignalK Data Lab Plugin",
+      head: goatcounterHead,
       // The 404 page is src/content/docs/404.md, built like any other page;
       // Starlight's own /404 route would build the same path twice
       disable404Route: true,
